@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>노래방 TV 화면 — 현재 잠금</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@700;900&family=Noto+Serif+KR:wght@700;900&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  html,body{ margin:0; padding:0; background:#0a0a0c; font-family:'Gothic A1',sans-serif; color:#fff; }
+  body{ padding:60px 24px 100px; }
+  .page-title{ text-align:center; color:rgba(255,255,255,0.4); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:4px; margin-bottom:50px; }
+  .row{ display:flex; gap:50px; flex-wrap:wrap; justify-content:center; align-items:flex-start; }
+  .screen-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .label{ margin-top:16px; color:rgba(255,255,255,0.55); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-align:center; line-height:1.6; }
+
+  .phone{ width:340px; height:710px; background:#000; border-radius:50px; padding:11px; position:relative; box-shadow:0 30px 80px rgba(0,0,0,0.7); }
+  .screen{ width:100%; height:100%; border-radius:40px; overflow:hidden; position:relative; background:#06121a; }
+  .island{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:100px; height:30px; background:#000; border-radius:18px; z-index:200; }
+
+  /* ===== 빛바랜 영상 배경 (초창기 노래방 풍경) ===== */
+  .video{ position:absolute; inset:0; z-index:1;
+    background:
+      radial-gradient(120% 60% at 50% 14%, #bfe3ef 0%, #9fcdda 30%, transparent 60%),
+      linear-gradient(180deg, #a9d4e0 0%, #88b7c4 38%, #7ba9b0 55%, #acc9bf 72%, #c8dcc8 100%); }
+  /* 다리/지평선 실루엣 느낌 */
+  .video::before{ content:""; position:absolute; left:0; right:0; top:46%; height:16%;
+    background:linear-gradient(180deg, rgba(60,90,100,0.35), rgba(60,90,100,0.05));
+    filter:blur(2px); }
+  /* 영상 블룸 */
+  .bloom{ position:absolute; inset:0; z-index:2; pointer-events:none;
+    background:radial-gradient(60% 40% at 50% 30%, rgba(255,255,255,0.35), transparent 70%);
+    mix-blend-mode:screen; }
+
+  /* ===== 가장자리 빛 (방 조명) ===== */
+  .roomglow{ position:absolute; inset:0; z-index:3; pointer-events:none;
+    box-shadow: inset 0 0 70px rgba(255,80,140,0.25), inset 0 0 120px rgba(60,120,255,0.18); border-radius:40px; }
+
+  /* ===== CRT 스캔라인 + 비네팅 ===== */
+  .crt{ position:absolute; inset:0; z-index:60; pointer-events:none; border-radius:40px; overflow:hidden; }
+  .crt::before{ content:""; position:absolute; inset:0;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0px, rgba(0,0,0,0.16) 1px, transparent 1px, transparent 3px); }
+  .crt::after{ content:""; position:absolute; inset:0;
+    background:radial-gradient(75% 65% at 50% 50%, transparent 55%, rgba(0,0,0,0.55) 100%); }
+
+  .layer{ position:absolute; inset:0; z-index:30; padding:54px 16px 18px; display:flex; flex-direction:column; }
+
+  /* ===== 예약곡 상단바 ===== */
+  .topbar{ display:flex; align-items:center; gap:8px; background:rgba(10,20,40,0.55); border-radius:8px; padding:6px 9px; backdrop-filter:blur(2px); align-self:flex-start; }
+  .topbar .lab{ font-family:'Gothic A1'; font-weight:900; font-size:12px; color:#ffe14d; text-shadow:0 1px 2px #000; }
+  .topbar .disc{ width:18px; height:18px; border-radius:50%;
+    background:conic-gradient(#ff3b6b,#ffd23b,#2fe27b,#2f7bff,#b13bff,#ff3b6b); box-shadow:0 0 6px rgba(255,255,255,0.6); }
+  .topbar .no{ font-family:'IBM Plex Mono'; font-weight:700; font-size:16px; color:#fff; text-shadow:0 1px 2px #000; letter-spacing:1px; }
+  .topbar .tt{ font-family:'Gothic A1'; font-weight:700; font-size:12px; color:#fff; text-shadow:0 1px 2px #000; }
+
+  /* 예약 표시 빨간 물결 (코너) */
+  .squig{ position:absolute; top:50px; right:18px; z-index:40; color:#ff3b3b; font-size:22px; text-shadow:0 0 6px rgba(255,0,0,0.6); transform:rotate(-8deg); }
+
+  /* ===== 자막 (명조 + 외곽선 + 골드/시안 스윕) ===== */
+  .lyrics{ margin-top:auto; margin-bottom:18px; text-align:center; }
+  .klyric{ display:inline-block; position:relative; font-family:'Noto Serif KR',serif; font-weight:900; font-size:44px; line-height:1.25;
+    color:#fff;
+    -webkit-text-stroke:6px #122; paint-order:stroke fill;
+    text-shadow:0 3px 0 rgba(0,0,0,0.5);
+    margin:3px 0; }
+  /* 부른 만큼 차오르는 시안 하이라이트 */
+  .klyric .sweep{ position:absolute; left:0; top:0; white-space:nowrap; overflow:hidden;
+    color:#38e8e8; -webkit-text-stroke:6px #06303a; paint-order:stroke fill; text-shadow:0 3px 0 rgba(0,0,0,0.5); }
+  /* 다음 줄 — 골드 3D 입체 (초창기 느낌) */
+  .klyric.gold{ font-size:34px;
+    color:#ffe98a;
+    -webkit-text-stroke:5px #3a2a06; paint-order:stroke fill;
+    text-shadow:0 1px 0 #b8860b, 0 2px 0 #8a6508, 0 3px 0 #5e4506, 0 4px 4px rgba(0,0,0,0.6); }
+
+  /* ===== S / K 칸 게이지 ===== */
+  .gauges{ display:flex; flex-direction:column; gap:6px; }
+  .grow{ display:flex; align-items:center; gap:8px; }
+  .grow .gk{ font-family:'IBM Plex Mono'; font-weight:700; font-size:13px; color:#cfe; width:14px; text-align:center; text-shadow:0 1px 2px #000; }
+  .blocks{ flex:1; display:flex; gap:3px; }
+  .blk{ flex:1; height:14px; border:1.5px solid rgba(120,200,255,0.8); border-radius:2px; background:rgba(20,60,90,0.4); box-shadow:0 0 4px rgba(120,200,255,0.3); }
+  .blk.on{ background:#ff8c2f; border-color:#ffb061; box-shadow:0 0 8px rgba(255,140,47,0.7); }
+  .blk.cy{ background:#38c8e8; border-color:#7fe6ff; box-shadow:0 0 8px rgba(56,200,232,0.6); }
+
+  .timecap{ font-family:'IBM Plex Mono'; font-size:11px; color:#cfe; text-shadow:0 1px 2px #000; margin-top:8px; text-align:right; }
+</style>
+</head>
+<body>
+
+<div class="page-title">노래방 TV 화면 — 현재 잠금 (CRT)</div>
+
+<div class="row">
+
+  <!-- 현재 잠금 (TV 화면) -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="video"></div>
+      <div class="bloom"></div>
+      <div class="roomglow"></div>
+
+      <div class="layer">
+        <div class="topbar">
+          <span class="lab">현재 잠금</span>
+          <span class="disc"></span>
+          <span class="no">030313</span>
+          <span class="tt">인스타·유튜브·X · 잠금중</span>
+        </div>
+
+        <div class="lyrics">
+          <div class="klyric">
+            기획서 30분 쓰기
+            <span class="sweep" style="width:58%;">기획서 30분 쓰기</span>
+          </div>
+          <br>
+          <div class="klyric gold">다음 ▸ 운동 20분</div>
+        </div>
+
+        <div class="gauges">
+          <div class="grow">
+            <span class="gk">S</span>
+            <div class="blocks">
+              <div class="blk cy"></div><div class="blk cy"></div><div class="blk cy"></div><div class="blk cy"></div>
+              <div class="blk on"></div><div class="blk"></div><div class="blk"></div><div class="blk"></div>
+              <div class="blk"></div><div class="blk"></div><div class="blk"></div><div class="blk"></div>
+            </div>
+          </div>
+          <div class="grow">
+            <span class="gk">K</span>
+            <div class="blocks">
+              <div class="blk cy"></div><div class="blk cy"></div><div class="blk cy"></div><div class="blk cy"></div>
+              <div class="blk cy"></div><div class="blk cy"></div><div class="blk cy"></div><div class="blk on"></div>
+              <div class="blk"></div><div class="blk"></div><div class="blk"></div><div class="blk"></div>
+            </div>
+          </div>
+        </div>
+        <div class="timecap">남은 시간 2:14 · 62%</div>
+      </div>
+
+      <div class="squig">〰〰</div>
+      <div class="crt"></div>
+    </div></div>
+    <div class="label">현재 잠금 — 노래방 TV (CRT)</div>
+  </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>투두락 — 화면 기획 목업 v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --beige1:#f1ead7; --beige2:#e4dabe; --beige3:#d2c7a6; --beige4:#c2b692;
+    --ivory1:#f2ecda; --ivory2:#e2d9c1;
+    --led:#ff5a32; --blue1:#5a93d6; --blue2:#3f73bd; --bluestroke:#2f5a9a;
+    --red1:#ec5743; --red2:#d23522; --green1:#74c94f; --green2:#54a836;
+    --yellow1:#f7ff5e; --yellow2:#e9f600;
+    --navy:#23306a; --gray1:#54545c; --gray2:#3a3a40;
+    --kcyan:#38e8e8; --kyellow:#ffd23b; --kpink:#ff3b6b; --kgreen:#1c8f3a;
+    --koutline:#12176b;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:#14141a; color:#e8e8ea; font-family:-apple-system,"Segoe UI",Roboto,sans-serif; padding:40px 28px 80px;}
+  h1{font-size:26px; font-weight:800; margin-bottom:6px;}
+  .sub{color:#9a9aa2; font-size:14px; margin-bottom:24px; line-height:1.6;}
+  .flow{background:#1d1d25;border:1px solid #2c2c36;border-radius:12px;padding:14px 18px;margin-bottom:30px;font-size:13px;line-height:1.7;color:#c2c2cc;}
+  .flow b{color:#fff;}
+  .flow code{background:#2c2c36;padding:1px 7px;border-radius:6px;font-size:12px;color:#ffd23b;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin-bottom:30px; font-size:12.5px; color:#b8b8c0;}
+  .legend b{color:#fff;}
+  .row{display:flex; gap:34px; flex-wrap:wrap; align-items:flex-start;}
+  .item{width:300px;}
+  .cap{font-size:15px; font-weight:700; margin:14px 2px 4px;}
+  .note{font-size:12px; color:#9a9aa2; line-height:1.55; margin:0 2px;}
+  .new{display:inline-block; background:#ff4d6d; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:6px; vertical-align:middle; margin-left:5px;}
+  .done{display:inline-block; background:#2f9e57; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:6px; vertical-align:middle; margin-left:5px;}
+
+  .phone{width:300px; height:650px; border-radius:46px; padding:11px; background:#0b0b0f; box-shadow:0 18px 50px rgba(0,0,0,.5), 0 0 0 2px #2a2a32; position:relative;}
+  .screen{width:100%; height:100%; border-radius:36px; overflow:hidden; position:relative; display:flex; flex-direction:column;}
+  .notch{position:absolute; top:11px; left:50%; transform:translateX(-50%); width:110px; height:26px; background:#0b0b0f; border-radius:0 0 16px 16px; z-index:50;}
+
+  /* 리모컨 */
+  .remote{background:linear-gradient(135deg,var(--beige1),var(--beige2) 40%,var(--beige3) 75%,var(--beige4)); padding:30px 15px 16px; gap:9px;}
+  .r-head{display:flex; align-items:center; gap:7px;}
+  .r-logo{width:23px;height:23px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#ff8a5c,#e8533a);color:#fff;font-size:11px;font-weight:900;display:flex;align-items:center;justify-content:center;}
+  .r-title{font-size:17px;font-weight:900;color:#333;letter-spacing:.5px;}
+  .r-gear{margin-left:auto;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:15px;color:#555;border:1px solid rgba(0,0,0,.12);}
+  .banner{background:linear-gradient(var(--red1),var(--red2));color:#fff;border-radius:10px;padding:9px 12px;display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;}
+  .banner .ic{font-size:15px;}
+  .banner .go{margin-left:auto;font-weight:900;}
+  .led{background:radial-gradient(circle,#14120b,#050503);border:2px solid #2c281c;border-radius:8px;padding:9px 12px;display:flex;align-items:center;gap:9px;}
+  .led-bars{display:flex;flex-direction:column;gap:3px;}
+  .led-bars i{width:11px;height:4px;border-radius:1px;background:rgba(93,255,143,.16);}
+  .led-bars i.on{background:#4ee87f;box-shadow:0 0 4px #4ee87f;}
+  .led-num{flex:1;text-align:center;font-family:"SF Mono",ui-monospace,monospace;font-weight:700;font-size:48px;color:var(--led);text-shadow:0 0 9px rgba(255,90,50,.8);letter-spacing:2px;}
+  .panel{background:linear-gradient(var(--gray1),var(--gray2));border-radius:11px;padding:10px;display:flex;flex-direction:column;gap:7px;}
+  .panel-row{display:flex;gap:7px;}
+  .fbtn{flex:1;border-radius:9px;padding:9px 0;text-align:center;font-size:14px;font-weight:900;border:1px solid rgba(0,0,0,.25);}
+  .fbtn.gray{background:linear-gradient(#e6e6de,#cfcfc4);color:#222;}
+  .fbtn.green{background:linear-gradient(#74c94f,#54a836);color:#0b2606;}
+  .preset{flex:1;border-radius:9px;padding:9px 0;text-align:center;font-size:14px;font-weight:900;background:linear-gradient(var(--ivory1),var(--ivory2));color:#222;border:1px solid rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;gap:4px;}
+  .preset.sel{border:2px solid var(--blue2);}
+  .preset .dot{width:6px;height:6px;border-radius:50%;background:#e8853a;}
+  .managebar{height:46px;border-radius:10px;background:linear-gradient(var(--red1),var(--red2));color:#fff;font-size:15px;font-weight:900;display:flex;align-items:center;justify-content:center;gap:7px;}
+  .pad{display:flex;flex-direction:column;gap:6px;margin-top:1px;}
+  .pad-row{display:flex;gap:6px;}
+  .key{flex:1;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-weight:800;border:1px solid #c1c4b0;background:linear-gradient(#eceee0,#d6d9c4);font-size:28px;font-style:italic;color:#1a1a1a;font-family:ui-rounded,-apple-system;}
+  .key.blue{background:linear-gradient(var(--blue1),var(--blue2));border-color:var(--bluestroke);color:#fff;font-size:14px;font-style:normal;font-weight:900;}
+  .start{margin-top:auto;height:56px;border-radius:28px;background:linear-gradient(var(--yellow1),var(--yellow2));color:#2a2e06;font-size:24px;font-weight:900;letter-spacing:5px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 16px rgba(225,255,20,.6);font-family:ui-rounded,-apple-system;}
+
+  /* 시트 공통 */
+  .sheet{background:#1b1b22;}
+  .sheet-grab{width:38px;height:5px;border-radius:3px;background:#48484f;margin:9px auto 0;}
+  .sheet-nav{display:flex; align-items:center; justify-content:space-between; padding:12px 18px; font-size:13px; color:#8f8f98;}
+  .sheet-nav b{color:#fff;font-size:16px;}
+  .sheet-body{flex:1; overflow:hidden; padding:4px 16px 16px; display:flex; flex-direction:column; gap:16px;}
+  .sec-label{font-size:11.5px;font-weight:700;color:#7d7d86;text-transform:uppercase;letter-spacing:.5px;margin:0 4px 7px;}
+  .card{background:#26262e;border-radius:14px;overflow:hidden;}
+  .crow{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;font-size:14.5px;border-bottom:1px solid #303039;}
+  .crow:last-child{border-bottom:none;}
+  .crow .v{color:#8f8f98;} .chev{color:#5a5a63;font-size:13px;}
+  .stat1{background:linear-gradient(135deg,#2a2350,#3a2a5a);border-radius:14px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;}
+  .stat1 .big{font-size:22px;font-weight:800;color:#fff;}
+  .stat1 .lbl{font-size:11px;color:#b9b2d6;}
+
+  /* 과업 라이브러리 */
+  .task{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid #303039;}
+  .task:last-child{border-bottom:none;}
+  .task .ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .task .ico.timer{background:rgba(56,232,232,.16);color:var(--kcyan);}
+  .task .ico.verify{background:rgba(255,59,107,.16);color:var(--kpink);}
+  .task .nm{font-size:15px;font-weight:700;}
+  .task .sm{font-size:11.5px;color:#8f8f98;margin-top:2px;}
+  .task .badge{margin-left:auto;font-size:10px;font-weight:800;padding:2px 8px;border-radius:7px;flex-shrink:0;}
+  .badge.timer{background:rgba(56,232,232,.16);color:var(--kcyan);}
+  .badge.verify{background:rgba(255,59,107,.16);color:var(--kpink);}
+  .addbtn{border-radius:11px;padding:13px;text-align:center;font-size:14px;font-weight:800;color:#cfcfd6;border:1.5px dashed #4a4a54;}
+  .useinfo{font-size:11.5px;color:#7d7d86;text-align:center;line-height:1.5;margin-top:2px;}
+
+  /* 잠금 TV */
+  .tv{background:linear-gradient(#8aa6d6,#9cb4dc 40%,#a6bce0 60%,#7e9ad2);position:relative;padding:20px 18px;}
+  .tv::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(rgba(0,0,0,.30) 0 1.4px, transparent 1.4px 3px);}
+  .tv::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:6;background:radial-gradient(circle at 50% 45%, transparent 38%, rgba(0,0,0,.55));}
+  .nowbox{display:inline-flex;align-self:flex-start;border-radius:8px;overflow:hidden;background:rgba(0,0,0,.35);border:2px solid rgba(255,255,255,.5);z-index:10;}
+  .nowbox .tag{background:var(--kgreen);color:#fff;font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:13px;padding:0 9px;display:flex;align-items:center;}
+  .nowbox.pink .tag{background:var(--kpink);}
+  .nowbox .meta{padding:5px 11px;}
+  .nowbox .num{font-family:"SF Mono",monospace;font-weight:700;font-size:16px;color:var(--kcyan);}
+  .nowbox .desc{font-family:"Nanum Myeongjo",serif;font-size:11px;color:rgba(255,255,255,.8);}
+  .gauge{display:flex;align-items:center;gap:9px;margin-top:16px;z-index:10;}
+  .gauge .track{flex:1;height:12px;border-radius:7px;background:rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.4);overflow:hidden;padding:2px;}
+  .gauge .fill{height:100%;width:42%;border-radius:5px;background:linear-gradient(90deg,var(--kgreen),var(--kyellow),var(--kpink));}
+  .gauge .t{font-family:"SF Mono",monospace;font-weight:700;font-size:13px;color:var(--kyellow);}
+  .medley{margin-top:auto;z-index:10;}
+  .medley .lab{font-family:"SF Mono",monospace;font-size:11px;color:var(--kyellow);text-shadow:0 0 6px rgba(255,210,59,.6);margin-bottom:10px;}
+  .lyric{font-family:"Nanum Myeongjo",serif;font-weight:800;line-height:1.35;color:var(--kcyan);text-shadow:-1.5px -1.5px 0 var(--koutline),1.5px -1.5px 0 var(--koutline),-1.5px 1.5px 0 var(--koutline),1.5px 1.5px 0 var(--koutline),0 0 2px var(--koutline);}
+  .lyric.l1{font-size:27px;} .lyric.l2{font-size:23px;color:#fff;opacity:.95;margin-top:6px;}
+  .tv-foot{font-family:"Nanum Myeongjo",serif;font-size:12px;color:rgba(255,255,255,.55);margin-top:16px;z-index:10;}
+  /* 잠금 TV 하단 리모컨 그립(peek) */
+  .r-grip{position:absolute;left:0;right:0;bottom:0;z-index:20;background:linear-gradient(var(--beige1),var(--beige2));border-radius:18px 18px 0 0;padding:8px 0 10px;text-align:center;box-shadow:0 -6px 18px rgba(0,0,0,.3);}
+  .r-grip .bar{width:40px;height:5px;border-radius:3px;background:#9a8f74;margin:0 auto 5px;}
+  .r-grip .lbl{font-size:12px;font-weight:800;color:#5a5038;letter-spacing:.5px;}
+  /* 리모컨 끌어올린 상태 (TV 위 바텀시트) */
+  .tv.dim::after{background:radial-gradient(circle at 50% 45%, rgba(0,0,0,.35) 38%, rgba(0,0,0,.7));}
+  .r-drawer{position:absolute;left:0;right:0;bottom:0;height:88%;z-index:25;background:linear-gradient(135deg,var(--beige1),var(--beige2) 40%,var(--beige3) 75%,var(--beige4));border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.45);padding:9px 15px 16px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+  .r-drawer .bar{width:40px;height:5px;border-radius:3px;background:#9a8f74;margin:0 auto 4px;}
+
+  /* 과업 네온 */
+  .neon{position:relative;padding:18px;overflow:hidden;background:linear-gradient(135deg,#1f1450,#261063 45%,#2e1a72 75%,#240f5a);}
+  .neon::before{content:"";position:absolute;inset:-40px;pointer-events:none;filter:blur(34px);background:radial-gradient(circle at 25% 28%, rgba(0,255,255,.5), transparent 18%),radial-gradient(circle at 78% 36%, rgba(255,0,255,.45), transparent 18%),radial-gradient(circle at 50% 72%, rgba(0,128,255,.5), transparent 20%),radial-gradient(circle at 16% 74%, rgba(128,255,0,.42), transparent 16%),radial-gradient(circle at 86% 66%, rgba(255,138,0,.46), transparent 18%);}
+  .neon::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:5;background:repeating-linear-gradient(rgba(0,0,0,.25) 0 1.4px, transparent 1.4px 3px);}
+  .neon-top{display:flex;align-items:center;justify-content:space-between;z-index:10;position:relative;}
+  .xbtn{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.35);color:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .neon-jump{font-family:"SF Mono",monospace;font-size:11px;color:var(--kyellow);text-shadow:0 0 5px rgba(255,210,59,.5);margin:22px 0 8px;z-index:10;position:relative;text-align:center;}
+  .neon-task{font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:24px;color:#fff;text-align:center;z-index:10;position:relative;text-shadow:0 0 10px rgba(56,232,232,.5);margin-bottom:20px;}
+  .ring{width:138px;height:138px;border-radius:50%;border:3px solid var(--kcyan);box-shadow:0 0 18px var(--kcyan),inset 0 0 14px rgba(56,232,232,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:6px auto 18px;z-index:10;position:relative;}
+  .ring .tnum{font-family:"SF Mono",monospace;font-weight:700;font-size:38px;color:#fff;text-shadow:0 0 10px var(--kcyan);}
+  .ring .tsub{font-size:10px;color:var(--kcyan);margin-top:2px;}
+  .photo{width:170px;height:150px;border-radius:14px;margin:0 auto 18px;z-index:10;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(0,0,0,.3);border:2px dashed rgba(56,232,232,.5);color:var(--kcyan);}
+  .photo .cam{font-size:34px;}
+  .photo .ct{font-size:12px;font-family:"Nanum Myeongjo",serif;}
+  .warn-leave{z-index:10;position:relative;text-align:center;font-size:12px;color:rgba(255,255,255,.6);font-family:"Nanum Myeongjo",serif;margin-bottom:14px;line-height:1.5;}
+  .warn-leave b{color:var(--kpink);}
+  .neon-btn{margin-top:auto;height:52px;border-radius:13px;z-index:10;position:relative;color:#fff;font-family:"Nanum Myeongjo",serif;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;}
+  .neon-btn.on{background:var(--kgreen);box-shadow:0 0 18px rgba(28,143,58,.5);}
+  .neon-btn.off{background:rgba(255,255,255,.12);color:rgba(255,255,255,.55);}
+</style>
+</head>
+<body>
+  <h1>투두락 — 화면 기획 목업 <span style="font-size:14px;color:#9a9aa2;font-weight:500;">v2 (HTML 시안)</span></h1>
+  <div class="sub">탭바 제거 → <b>리모컨 단일 화면</b>. 마이 = 권한 배너 + 미니 ⚙︎. 과업 = <b>타이머 버티기 / 사진찍기 2종, 체크박스 없음</b>.</div>
+
+  <div class="flow">
+    <b>흐름</b> &nbsp;
+    <code>리모컨</code> 시간·앱·모드 → 시작 &nbsp;➜&nbsp;
+    <code>잠금 TV</code>(풀스크린) 하단 <b>리모컨 그립 슥↑</b> 끌어올리면 리모컨이 바텀시트로 복귀 &nbsp;➜&nbsp;
+    잠긴 앱 누름 → <code>과업 네온</code> 등록된 과업 1개 즉시 수행 &nbsp;➜&nbsp;
+    완료 = <b style="color:#74c94f;">통과(시간 획득)</b> / 중간이탈 = <b style="color:#ff5a5a;">잠금 유지</b><br>
+    <b>자주 쓰는 과업</b> = 과업 풀(pool): 리모컨 초록 버튼에서 등록·관리, 점프 때 이 중 하나를 함. 타입은 <b>⏱ 타이머 버티기</b> / <b>📷 사진찍기</b>.
+  </div>
+
+  <div class="legend">
+    <span><span class="new">NEW</span> 새로 추가/이동</span>
+    <span><span class="done">구현됨</span> 이미 있음(재확인)</span>
+  </div>
+
+  <div class="row">
+
+    <!-- 1. 리모컨 -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen remote">
+        <div class="r-head">
+          <div class="r-logo">TL</div><div class="r-title">TODOLOCK</div><div class="r-gear">⚙︎</div>
+        </div>
+        <div class="banner"><span class="ic">⚠️</span>스크린타임 권한이 필요해요<span class="go">켜기 ›</span></div>
+        <div class="led">
+          <div class="led-bars"><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i></div>
+          <div class="led-num">12:00</div>
+          <div class="led-bars"><i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i></div>
+        </div>
+        <div class="panel">
+          <div class="panel-row"><div class="fbtn gray">시간 ▲</div><div class="fbtn gray">시간 ▼</div><div class="fbtn green">과업</div></div>
+          <div class="panel-row"><div class="preset sel"><span class="dot"></span>집중</div><div class="preset">독서</div><div class="preset">운동</div></div>
+        </div>
+        <div class="managebar">🔒 잠글 앱 3개</div>
+        <div class="pad">
+          <div class="pad-row"><div class="key">1</div><div class="key">2</div><div class="key">3</div></div>
+          <div class="pad-row"><div class="key">4</div><div class="key">5</div><div class="key">6</div></div>
+          <div class="pad-row"><div class="key">7</div><div class="key">8</div><div class="key">9</div></div>
+          <div class="pad-row"><div class="key blue">CANCEL</div><div class="key">0</div><div class="key blue">BACK</div></div>
+        </div>
+        <div class="start">시 작 ▶</div>
+      </div></div>
+      <div class="cap">① 리모컨 (홈, 단일 화면)</div>
+      <div class="note">상단 빨간 <b>권한 배너</b><span class="new">NEW</span>(없을 때만), ⚙︎<span class="new">NEW</span>=미니 시트. 초록 버튼 "과업"<span class="new">변경</span>=과업 풀 관리.</div>
+    </div>
+
+    <!-- 2. 미니 ⚙︎ -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-nav"><span>닫기</span><b>설정</b><span style="opacity:0">닫기</span></div>
+        <div class="sheet-body">
+          <div class="stat1">
+            <div><div class="big">이번 주 4시간</div><div class="lbl">총 잠금 · 통과율 82%</div></div>
+            <div class="chev">›</div>
+          </div>
+          <div>
+            <div class="sec-label">도움말</div>
+            <div class="card">
+              <div class="crow"><span>앱 삭제 보호 가이드</span><span class="chev">›</span></div>
+              <div class="crow"><span>스크린타임 권한</span><span style="color:#46d27e;font-weight:600">허용됨</span></div>
+              <div class="crow"><span>알림</span><span style="color:#46d27e;font-weight:600">허용됨</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="sec-label">정보</div>
+            <div class="card">
+              <div class="crow"><span>버전</span><span class="v">1.0.0</span></div>
+              <div class="crow"><span>문의하기</span><span class="chev">›</span></div>
+            </div>
+          </div>
+          <div class="useinfo">마이 탭을 없애고 꼭 필요한 것만 모았어요.<br>권한 재설정은 위 도움말 또는 홈 배너에서.</div>
+        </div>
+      </div></div>
+      <div class="cap">② 미니 ⚙︎ 시트 <span class="new">마이 대체</span></div>
+      <div class="note">통계 1줄 + 삭제보호 가이드 + 권한 상태 + 버전/문의. 기존 마이 탭 통째 흡수.</div>
+    </div>
+
+    <!-- 3. 자주 쓰는 과업 -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen sheet">
+        <div class="sheet-grab"></div>
+        <div class="sheet-nav"><span>닫기</span><b>자주 쓰는 과업</b><span>완료</span></div>
+        <div class="sheet-body">
+          <div class="useinfo" style="text-align:left;margin:0 2px 4px">잠긴 앱을 열면 이 중 <b style="color:#cfcfd6">하나를 즉시 수행</b>해야 통과해요. 체크리스트가 아니라 단일 과업이에요.</div>
+          <div class="card">
+            <div class="task"><div class="ico timer">⏱</div><div><div class="nm">30분 독서</div><div class="sm">타이머 끝까지 버티기</div></div><div class="badge timer">타이머</div></div>
+            <div class="task"><div class="ico verify">📷</div><div><div class="nm">책상 정리 인증</div><div class="sm">사진 1장 촬영</div></div><div class="badge verify">사진</div></div>
+            <div class="task"><div class="ico timer">⏱</div><div><div class="nm">5분 스트레칭</div><div class="sm">타이머 5:00 버티기</div></div><div class="badge timer">타이머</div></div>
+            <div class="task"><div class="ico verify">📷</div><div><div class="nm">운동 인증</div><div class="sm">사진 1장 촬영</div></div><div class="badge verify">사진</div></div>
+          </div>
+          <div class="addbtn">＋ 새 과업 만들기 (타이머 버티기 / 사진찍기)</div>
+        </div>
+      </div></div>
+      <div class="cap">③ 자주 쓰는 과업 (풀 관리) <span class="new">재설계</span></div>
+      <div class="note">단일 과업 목록. 타입 뱃지(⏱타이머 / 📷사진). 체크박스·복합 편집 제거.</div>
+    </div>
+
+    <!-- 4. 과업 수행 — 타이머형 -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen neon">
+        <div class="neon-top">
+          <div class="nowbox pink"><div class="tag">점프</div><div class="meta"><div class="num">№0427</div><div class="desc">완료하면 15분 점프</div></div></div>
+          <div class="xbtn">✕</div>
+        </div>
+        <div class="neon-jump">♪  이 곡을 점프하려면  ♪</div>
+        <div class="neon-task">30분 독서</div>
+        <div class="ring"><div class="tnum">28:11</div><div class="tsub">남음</div></div>
+        <div class="warn-leave">끝까지 있어야 통과돼요.<br>지금 나가면 <b>이탈 · 잠금 유지</b>.</div>
+        <div class="neon-btn off">타이머가 끝나면 점프 ▶</div>
+      </div></div>
+      <div class="cap">④ 과업 수행 — 타이머형 <span class="done">배경 구현됨</span></div>
+      <div class="note">누르면 즉시 카운트다운. 끝나야 버튼 활성화. 이탈 시 실패.</div>
+    </div>
+
+    <!-- 5. 과업 수행 — 인증형 -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen neon">
+        <div class="neon-top">
+          <div class="nowbox pink"><div class="tag">점프</div><div class="meta"><div class="num">№0427</div><div class="desc">완료하면 15분 점프</div></div></div>
+          <div class="xbtn">✕</div>
+        </div>
+        <div class="neon-jump">♪  이 곡을 점프하려면  ♪</div>
+        <div class="neon-task">책상 정리 인증</div>
+        <div class="photo"><div class="cam">🤖</div><div class="ct">온디바이스 AI 검수 중…</div></div>
+        <div class="warn-leave">기기 내 <b style="color:var(--kcyan)">Vision AI가 과업 완료를 판정</b>해요.<br>통과 시 점프, 아니면 재촬영. 안 찍고 나가면 <b>잠금 유지</b>.</div>
+        <div class="neon-btn on">📷 사진 촬영 ▶</div>
+      </div></div>
+      <div class="cap">⑤ 과업 수행 — 사진찍기 <span class="new">신규 타입</span></div>
+      <div class="note">촬영 → <b>온디바이스 Vision 검수</b><span class="new">NEW</span> → 통과/재촬영. 오프라인·무료·사진 유출 없음.</div>
+    </div>
+
+    <!-- 6. 잠금 TV -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen tv">
+        <div class="nowbox"><div class="tag">부르는 중</div><div class="meta"><div class="num">№0427</div><div class="desc">3개 앱과 이별 1시간</div></div></div>
+        <div class="gauge"><div class="track"><div class="fill"></div></div><div class="t">42:18 남음</div></div>
+        <div class="medley">
+          <div class="lab">♪  애창곡 메들리  ♪</div>
+          <div class="lyric l1">그대 없는 1시간</div>
+          <div class="lyric l2">어떻게 버텨야 하나요</div>
+        </div>
+        <div class="tv-foot">종료 시각까지 해제할 수 없어요. 약속이니까요.</div>
+        <div class="r-grip"><div class="bar"></div><div class="lbl">⌃ 리모컨 올리기</div></div>
+      </div></div>
+      <div class="cap">⑥ 잠금 화면 — CRT TV <span class="done">구현됨</span></div>
+      <div class="note">풀스크린 노래방 자막. 하단 <b>리모컨 그립</b><span class="new">NEW</span>을 슥 끌어올리면 ⑦로.</div>
+    </div>
+
+    <!-- 7. 잠금 중 리모컨 끌어올림 -->
+    <div class="item">
+      <div class="phone"><div class="notch"></div><div class="screen tv dim">
+        <div class="nowbox"><div class="tag">부르는 중</div><div class="meta"><div class="num">№0427</div><div class="desc">3개 앱과 이별 1시간</div></div></div>
+        <div class="r-drawer">
+          <div class="bar"></div>
+          <div class="r-head" style="margin-top:2px">
+            <div class="r-logo">TL</div><div class="r-title">TODOLOCK</div><div class="r-gear">⚙︎</div>
+          </div>
+          <div class="led">
+            <div class="led-bars"><i></i><i class="on"></i><i class="on"></i><i></i><i class="on"></i><i></i></div>
+            <div class="led-num">42:18</div>
+            <div class="led-bars"><i></i><i class="on"></i><i></i><i class="on"></i><i class="on"></i><i></i></div>
+          </div>
+          <div class="panel">
+            <div class="panel-row"><div class="fbtn gray">시간 ▲</div><div class="fbtn gray">시간 ▼</div><div class="fbtn green">과업</div></div>
+            <div class="panel-row"><div class="preset sel"><span class="dot"></span>집중</div><div class="preset">독서</div><div class="preset">운동</div></div>
+          </div>
+          <div class="managebar" style="opacity:.5">🔒 잠금 중 — 앱 변경 불가</div>
+          <div class="pad">
+            <div class="pad-row"><div class="key">1</div><div class="key">2</div><div class="key">3</div></div>
+            <div class="pad-row"><div class="key">4</div><div class="key">5</div><div class="key">6</div></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap">⑦ 잠금 중 — 리모컨 끌어올림 <span class="new">NEW</span></div>
+      <div class="note">TV 위로 리모컨 바텀시트. 시간 추가·모드 확인 가능, <b>잠긴 앱만 못 풀어요</b>. 내리면 다시 ⑥.</div>
+    </div>
+
+  </div>
+</body>
+</html>

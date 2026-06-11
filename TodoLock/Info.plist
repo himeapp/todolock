@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>투두락</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundleName</key>
+	<string>$(PRODUCT_NAME)</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>hime.app.todolock</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>todolock</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>NSCameraUsageDescription</key>
+	<string>사진 인증 과업을 수행할 때 카메라로 사진을 촬영합니다. 사진은 기기 안에서만 검수돼요.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>카메라를 쓸 수 없는 경우 사진 보관함에서 인증 사진을 고릅니다.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>차단된 앱에 접근할 때 과업 화면으로 안내하기 위해 알림을 사용합니다.</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>NanumMyeongjo-Regular.ttf</string>
+		<string>NanumMyeongjo-ExtraBold.ttf</string>
+		<string>DSEG7Classic-Bold.ttf</string>
+	</array>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+</dict>
+</plist>

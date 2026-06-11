@@ -1,0 +1,864 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0AC6AA9BA2FCFF2CA66AA5A3 /* TaskItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2B8E647F16EE520651CA20C /* TaskItem.swift */; };
+		0C643BD72D67BA927380E819 /* LegalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B27336AE2EC58ED54323024 /* LegalView.swift */; };
+		0FA67FEF34C5B5AD71352D9B /* WatchdogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836EEF9F35BEB94253F49464 /* WatchdogSheet.swift */; };
+		17A30875EE9BB9254BE116CF /* TimerTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92946A3FCAD961923350D40B /* TimerTaskView.swift */; };
+		190275949CDA7957EA9C2889 /* TempUnlockController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10A3090149C5C1595EF2AF3A /* TempUnlockController.swift */; };
+		1A1040641B84CF4885D4C410 /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16809658B9AB3C1DCAF6AD44 /* SessionDetailView.swift */; };
+		1B6104A8267D6C077B64282F /* ActivityMonitorExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		2DFE59FD5F5F53A18926419A /* ActiveSessionIDStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C20E339C27555DF2E3B415 /* ActiveSessionIDStore.swift */; };
+		3644DA98C2A57A3BCC7646D5 /* TaskExecutionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B2428CA94D9676DAA1EEDF8 /* TaskExecutionView.swift */; };
+		3A5F61C5929BD324F47E6D16 /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADFF45BFE4238196A22763F /* Session.swift */; };
+		57D7245390BDD30FC3A93F8B /* DeepLinkHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63CE2F1DA9854086A517BA94 /* DeepLinkHandler.swift */; };
+		644BD70B290E64426B7F4FD5 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B515EF0F98D650239C289CEC /* PaywallView.swift */; };
+		6476ADA2AFBCD80158D607F2 /* NanumMyeongjo-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9FB249B1272CDB6426437D2 /* NanumMyeongjo-ExtraBold.ttf */; };
+		6743D1ADF3FF548F97A7F823 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */; };
+		68C20666D2E7E40C243BE79C /* RemoteViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14E75D3668DEEF91DDA948D5 /* RemoteViewModel.swift */; };
+		77A53670B3F8C7793D4DFF0A /* DSEG7Classic-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */; };
+		7B09AD0E8549ABE72ADBE53F /* ShieldConfiguration.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7D3B72C4053955DB68E1FBD7 /* TempUnlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8372F7A243313FE9760DBCC /* TempUnlock.swift */; };
+		7DB6D8D783DF5C215F1BF679 /* ShieldActionExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B98D28F4AD6E2291F9F5517A /* ShieldActionExtension.swift */; };
+		7F0C7D7B367C103ADEBAAA96 /* TaskPoolSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B1CA6385D3381D30AE9B0CD /* TaskPoolSheet.swift */; };
+		802FB0E9ACF3404C651B5063 /* ScreenTourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E526E92C526DEAB4D65D923 /* ScreenTourView.swift */; };
+		85A8D28C419060D91ECBE083 /* PhotoTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1910AC40A35A03A133E9B984 /* PhotoTaskView.swift */; };
+		861C1C7BEBF4ADF65DD3DD86 /* ManagedSettingsController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 800FCB7E37FDE8440D853C3F /* ManagedSettingsController.swift */; };
+		89C63376EF3C7CBC4A3EE43E /* SessionShieldStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D144A6B5E9DDE7389C5F1F8 /* SessionShieldStore.swift */; };
+		8C4A6ACAABDBB13ECD59E38C /* PermissionRequestView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D2DB7499D4805E449830E0 /* PermissionRequestView.swift */; };
+		9842821CB31F0EE0B1E27D1E /* ActiveLockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 008826C45EE3869F48BCB089 /* ActiveLockView.swift */; };
+		A304FD3A37CC4D6195BDDB43 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E39FC1DBED0D44264769E1A /* SubscriptionManager.swift */; };
+		A68861945436C88FFE7D8197 /* ShieldConfigurationExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2EE578D712C9A9B3DF88283 /* ShieldConfigurationExtension.swift */; };
+		A81862D8B50A9DA19902E5F4 /* TodoLockApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21CC189389A385428F4895C7 /* TodoLockApp.swift */; };
+		AAE9ABE0D5394676269486C8 /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32D45055FB6A1A4704FB1A /* NotificationDelegate.swift */; };
+		ADFADC2A34741B619D089A21 /* CompletionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB79042FFD34147AD377C03 /* CompletionRecord.swift */; };
+		AE227E0ACB648921703B8805 /* KaraokeKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0755EF283CD694DB83C2FE2C /* KaraokeKit.swift */; };
+		B2CB9A9D1139284465E2DA83 /* NanumMyeongjo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */; };
+		B416DACF4222743D36BB4E24 /* Ticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6798D6785B6A6DB0C65426B /* Ticker.swift */; };
+		BC9FFECA9155F8DC1D237C41 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */; };
+		C287F9302C41B59C6684DA93 /* DSEG-LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 9F6380D179B381A877D5C4B3 /* DSEG-LICENSE.txt */; };
+		D2195302E96DAFD75D51EC0E /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D259A669C0B5A40787DCAD54 /* DeviceActivityMonitorExtension.swift */; };
+		D3A8396059A75E9304589A96 /* ShieldAction.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 578FC45A1D515F856A063EC2 /* ShieldAction.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E308FF4A8E65E5671F04CC81 /* SessionPreset.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0907CC842FD84BA86D838DD /* SessionPreset.swift */; };
+		ED39FEECFBA093EFEEC1BBE2 /* ActivityScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE28D88EC955F853042668A9 /* ActivityScheduler.swift */; };
+		F352DF98EB5C3C17BF13B354 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803E13DF89B6333A50D0A91A /* LockScreenView.swift */; };
+		F712AC605843B901A644136E /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = A00BACE9E3A46AE670ED1225 /* OFL.txt */; };
+		F86865EADC0B1D013CAF04C9 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C76873FCB1A373018C3725C6 /* SessionStore.swift */; };
+		FBE506BAC584012B26F4BD8E /* RemoteControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D99139578B232B0FF83DE9 /* RemoteControlView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1E69C4B1239D746AB5756806 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86EF7C6A3FA164878593CBBC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2EF5AE1892B7112DFD42E8F4;
+			remoteInfo = ShieldConfiguration;
+		};
+		601FC3FFFC2F40971BBE5A9B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86EF7C6A3FA164878593CBBC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F9BD409CE83E12DF0F7D6702;
+			remoteInfo = ActivityMonitorExtension;
+		};
+		BF09BEDC31E363B8F1E58A06 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86EF7C6A3FA164878593CBBC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 81ACBDA415965A0067149FE5;
+			remoteInfo = ShieldAction;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		29D067FEC77263F2E1011CD1 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				7B09AD0E8549ABE72ADBE53F /* ShieldConfiguration.appex in Embed Foundation Extensions */,
+				D3A8396059A75E9304589A96 /* ShieldAction.appex in Embed Foundation Extensions */,
+				1B6104A8267D6C077B64282F /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		008826C45EE3869F48BCB089 /* ActiveLockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveLockView.swift; sourceTree = "<group>"; };
+		0755EF283CD694DB83C2FE2C /* KaraokeKit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KaraokeKit.swift; sourceTree = "<group>"; };
+		10A3090149C5C1595EF2AF3A /* TempUnlockController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempUnlockController.swift; sourceTree = "<group>"; };
+		14E75D3668DEEF91DDA948D5 /* RemoteViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteViewModel.swift; sourceTree = "<group>"; };
+		16809658B9AB3C1DCAF6AD44 /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
+		17D99139578B232B0FF83DE9 /* RemoteControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteControlView.swift; sourceTree = "<group>"; };
+		1910AC40A35A03A133E9B984 /* PhotoTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoTaskView.swift; sourceTree = "<group>"; };
+		1D144A6B5E9DDE7389C5F1F8 /* SessionShieldStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionShieldStore.swift; sourceTree = "<group>"; };
+		21C20E339C27555DF2E3B415 /* ActiveSessionIDStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveSessionIDStore.swift; sourceTree = "<group>"; };
+		21CC189389A385428F4895C7 /* TodoLockApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLockApp.swift; sourceTree = "<group>"; };
+		2E39FC1DBED0D44264769E1A /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		2E526E92C526DEAB4D65D923 /* ScreenTourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenTourView.swift; sourceTree = "<group>"; };
+		35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DSEG7Classic-Bold.ttf"; sourceTree = "<group>"; };
+		3B27336AE2EC58ED54323024 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalView.swift; sourceTree = "<group>"; };
+		3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		4B1CA6385D3381D30AE9B0CD /* TaskPoolSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPoolSheet.swift; sourceTree = "<group>"; };
+		578FC45A1D515F856A063EC2 /* ShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5F76F39799D9DCD43426F01D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		63CE2F1DA9854086A517BA94 /* DeepLinkHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepLinkHandler.swift; sourceTree = "<group>"; };
+		6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumMyeongjo-Regular.ttf"; sourceTree = "<group>"; };
+		800FCB7E37FDE8440D853C3F /* ManagedSettingsController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManagedSettingsController.swift; sourceTree = "<group>"; };
+		803E13DF89B6333A50D0A91A /* LockScreenView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockScreenView.swift; sourceTree = "<group>"; };
+		836EEF9F35BEB94253F49464 /* WatchdogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchdogSheet.swift; sourceTree = "<group>"; };
+		8B2428CA94D9676DAA1EEDF8 /* TaskExecutionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskExecutionView.swift; sourceTree = "<group>"; };
+		92946A3FCAD961923350D40B /* TimerTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerTaskView.swift; sourceTree = "<group>"; };
+		9F6380D179B381A877D5C4B3 /* DSEG-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "DSEG-LICENSE.txt"; sourceTree = "<group>"; };
+		A00BACE9E3A46AE670ED1225 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
+		A1D2DB7499D4805E449830E0 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
+		B0907CC842FD84BA86D838DD /* SessionPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPreset.swift; sourceTree = "<group>"; };
+		B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B515EF0F98D650239C289CEC /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		B98D28F4AD6E2291F9F5517A /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
+		BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TodoLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		C76873FCB1A373018C3725C6 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
+		C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
+		D259A669C0B5A40787DCAD54 /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
+		D8372F7A243313FE9760DBCC /* TempUnlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempUnlock.swift; sourceTree = "<group>"; };
+		DD32D45055FB6A1A4704FB1A /* NotificationDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationDelegate.swift; sourceTree = "<group>"; };
+		DE28D88EC955F853042668A9 /* ActivityScheduler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActivityScheduler.swift; sourceTree = "<group>"; };
+		E6798D6785B6A6DB0C65426B /* Ticker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ticker.swift; sourceTree = "<group>"; };
+		EADFF45BFE4238196A22763F /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
+		F2B8E647F16EE520651CA20C /* TaskItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskItem.swift; sourceTree = "<group>"; };
+		F2EE578D712C9A9B3DF88283 /* ShieldConfigurationExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldConfigurationExtension.swift; sourceTree = "<group>"; };
+		F9FB249B1272CDB6426437D2 /* NanumMyeongjo-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NanumMyeongjo-ExtraBold.ttf"; sourceTree = "<group>"; };
+		FEB79042FFD34147AD377C03 /* CompletionRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompletionRecord.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		178B119A72A2663CC34EB0AE /* My */ = {
+			isa = PBXGroup;
+			children = (
+				C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */,
+			);
+			path = My;
+			sourceTree = "<group>";
+		};
+		19BC3493DB1E5B89A30A9D1A /* Remote */ = {
+			isa = PBXGroup;
+			children = (
+				17D99139578B232B0FF83DE9 /* RemoteControlView.swift */,
+				14E75D3668DEEF91DDA948D5 /* RemoteViewModel.swift */,
+				4B1CA6385D3381D30AE9B0CD /* TaskPoolSheet.swift */,
+				836EEF9F35BEB94253F49464 /* WatchdogSheet.swift */,
+			);
+			path = Remote;
+			sourceTree = "<group>";
+		};
+		2E04A0C6A2DAC985371C2C6E /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				A1D2DB7499D4805E449830E0 /* PermissionRequestView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		3289D708E94E357BDE84A3C7 /* TodoLock */ = {
+			isa = PBXGroup;
+			children = (
+				7F612BDB967604C81FE20E1A /* App */,
+				4439045CD851F95DA0E98A45 /* Karaoke */,
+				DAD9901DB60B0F7F0E776692 /* LockEngine */,
+				C5E5D29F5DBC004BDADD1AD7 /* Models */,
+				178B119A72A2663CC34EB0AE /* My */,
+				2E04A0C6A2DAC985371C2C6E /* Onboarding */,
+				EF83DE8883A9FC414B6F9116 /* Resources */,
+				544AE73E981392012D499993 /* Sessions */,
+				ABBADE5D3892EF3493EA38B9 /* Subscription */,
+				34A997BB2D5A4CB5C01B161D /* Tasks */,
+				5F76F39799D9DCD43426F01D /* Info.plist */,
+			);
+			path = TodoLock;
+			sourceTree = "<group>";
+		};
+		34A997BB2D5A4CB5C01B161D /* Tasks */ = {
+			isa = PBXGroup;
+			children = (
+				1910AC40A35A03A133E9B984 /* PhotoTaskView.swift */,
+				8B2428CA94D9676DAA1EEDF8 /* TaskExecutionView.swift */,
+				92946A3FCAD961923350D40B /* TimerTaskView.swift */,
+			);
+			path = Tasks;
+			sourceTree = "<group>";
+		};
+		4439045CD851F95DA0E98A45 /* Karaoke */ = {
+			isa = PBXGroup;
+			children = (
+				008826C45EE3869F48BCB089 /* ActiveLockView.swift */,
+				0755EF283CD694DB83C2FE2C /* KaraokeKit.swift */,
+				803E13DF89B6333A50D0A91A /* LockScreenView.swift */,
+				E6798D6785B6A6DB0C65426B /* Ticker.swift */,
+			);
+			path = Karaoke;
+			sourceTree = "<group>";
+		};
+		544AE73E981392012D499993 /* Sessions */ = {
+			isa = PBXGroup;
+			children = (
+				19BC3493DB1E5B89A30A9D1A /* Remote */,
+				16809658B9AB3C1DCAF6AD44 /* SessionDetailView.swift */,
+				C76873FCB1A373018C3725C6 /* SessionStore.swift */,
+			);
+			path = Sessions;
+			sourceTree = "<group>";
+		};
+		7F612BDB967604C81FE20E1A /* App */ = {
+			isa = PBXGroup;
+			children = (
+				63CE2F1DA9854086A517BA94 /* DeepLinkHandler.swift */,
+				DD32D45055FB6A1A4704FB1A /* NotificationDelegate.swift */,
+				21CC189389A385428F4895C7 /* TodoLockApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		A5E6E4149C5FF2060E930AB5 /* ShieldExtension */ = {
+			isa = PBXGroup;
+			children = (
+				B98D28F4AD6E2291F9F5517A /* ShieldActionExtension.swift */,
+				F2EE578D712C9A9B3DF88283 /* ShieldConfigurationExtension.swift */,
+			);
+			path = ShieldExtension;
+			sourceTree = "<group>";
+		};
+		ABBADE5D3892EF3493EA38B9 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				3B27336AE2EC58ED54323024 /* LegalView.swift */,
+				B515EF0F98D650239C289CEC /* PaywallView.swift */,
+				2E526E92C526DEAB4D65D923 /* ScreenTourView.swift */,
+				2E39FC1DBED0D44264769E1A /* SubscriptionManager.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		B9B0044826BAA81E76672579 = {
+			isa = PBXGroup;
+			children = (
+				EC118CC317E37642D7B8076B /* ActivityMonitorExtension */,
+				A5E6E4149C5FF2060E930AB5 /* ShieldExtension */,
+				3289D708E94E357BDE84A3C7 /* TodoLock */,
+				C07C0451EF418A450A14D960 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		C07C0451EF418A450A14D960 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */,
+				578FC45A1D515F856A063EC2 /* ShieldAction.appex */,
+				BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */,
+				BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		C5E5D29F5DBC004BDADD1AD7 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				FEB79042FFD34147AD377C03 /* CompletionRecord.swift */,
+				EADFF45BFE4238196A22763F /* Session.swift */,
+				B0907CC842FD84BA86D838DD /* SessionPreset.swift */,
+				F2B8E647F16EE520651CA20C /* TaskItem.swift */,
+				D8372F7A243313FE9760DBCC /* TempUnlock.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		D05F4E8F7F45A44AC10CE6DF /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				9F6380D179B381A877D5C4B3 /* DSEG-LICENSE.txt */,
+				35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */,
+				F9FB249B1272CDB6426437D2 /* NanumMyeongjo-ExtraBold.ttf */,
+				6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */,
+				A00BACE9E3A46AE670ED1225 /* OFL.txt */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		DAD9901DB60B0F7F0E776692 /* LockEngine */ = {
+			isa = PBXGroup;
+			children = (
+				21C20E339C27555DF2E3B415 /* ActiveSessionIDStore.swift */,
+				DE28D88EC955F853042668A9 /* ActivityScheduler.swift */,
+				800FCB7E37FDE8440D853C3F /* ManagedSettingsController.swift */,
+				1D144A6B5E9DDE7389C5F1F8 /* SessionShieldStore.swift */,
+				10A3090149C5C1595EF2AF3A /* TempUnlockController.swift */,
+			);
+			path = LockEngine;
+			sourceTree = "<group>";
+		};
+		EC118CC317E37642D7B8076B /* ActivityMonitorExtension */ = {
+			isa = PBXGroup;
+			children = (
+				D259A669C0B5A40787DCAD54 /* DeviceActivityMonitorExtension.swift */,
+			);
+			path = ActivityMonitorExtension;
+			sourceTree = "<group>";
+		};
+		EF83DE8883A9FC414B6F9116 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				D05F4E8F7F45A44AC10CE6DF /* Fonts */,
+				3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2EF5AE1892B7112DFD42E8F4 /* ShieldConfiguration */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F0116247D3B57BCCB5C4599 /* Build configuration list for PBXNativeTarget "ShieldConfiguration" */;
+			buildPhases = (
+				1CD53692AD52252F1CFC161D /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldConfiguration;
+			packageProductDependencies = (
+			);
+			productName = ShieldConfiguration;
+			productReference = BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		81ACBDA415965A0067149FE5 /* ShieldAction */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AC7D8559193DD93284FE77B4 /* Build configuration list for PBXNativeTarget "ShieldAction" */;
+			buildPhases = (
+				B8EB7EE94CE784497776BB07 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ShieldAction;
+			packageProductDependencies = (
+			);
+			productName = ShieldAction;
+			productReference = 578FC45A1D515F856A063EC2 /* ShieldAction.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		9ED734B71D8850A6678971B3 /* TodoLock */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FAE47C251AD422091A5C2B8A /* Build configuration list for PBXNativeTarget "TodoLock" */;
+			buildPhases = (
+				A2C89F7884F89B9FCE79A6F0 /* Sources */,
+				43434E3A1B23B6B112CBCB02 /* Resources */,
+				29D067FEC77263F2E1011CD1 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				F3F7838B5906C0C521387A84 /* PBXTargetDependency */,
+				BBE5D085AD00B26795091810 /* PBXTargetDependency */,
+				BCE248AD4D806F077EB4D689 /* PBXTargetDependency */,
+			);
+			name = TodoLock;
+			packageProductDependencies = (
+			);
+			productName = TodoLock;
+			productReference = BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */;
+			productType = "com.apple.product-type.application";
+		};
+		F9BD409CE83E12DF0F7D6702 /* ActivityMonitorExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 77DA86BCED25C8594A9C6AA7 /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */;
+			buildPhases = (
+				8CEA0929B8D14D261A92AB39 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ActivityMonitorExtension;
+			packageProductDependencies = (
+			);
+			productName = ActivityMonitorExtension;
+			productReference = B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		86EF7C6A3FA164878593CBBC /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					2EF5AE1892B7112DFD42E8F4 = {
+						DevelopmentTeam = U42553WVJN;
+						ProvisioningStyle = Automatic;
+					};
+					81ACBDA415965A0067149FE5 = {
+						DevelopmentTeam = U42553WVJN;
+						ProvisioningStyle = Automatic;
+					};
+					9ED734B71D8850A6678971B3 = {
+						DevelopmentTeam = U42553WVJN;
+						ProvisioningStyle = Automatic;
+					};
+					F9BD409CE83E12DF0F7D6702 = {
+						DevelopmentTeam = U42553WVJN;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 9CDB98FDDB32E7FBE4EADE24 /* Build configuration list for PBXProject "TodoLock" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = B9B0044826BAA81E76672579;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = C07C0451EF418A450A14D960 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				F9BD409CE83E12DF0F7D6702 /* ActivityMonitorExtension */,
+				81ACBDA415965A0067149FE5 /* ShieldAction */,
+				2EF5AE1892B7112DFD42E8F4 /* ShieldConfiguration */,
+				9ED734B71D8850A6678971B3 /* TodoLock */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		43434E3A1B23B6B112CBCB02 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6743D1ADF3FF548F97A7F823 /* Assets.xcassets in Resources */,
+				C287F9302C41B59C6684DA93 /* DSEG-LICENSE.txt in Resources */,
+				77A53670B3F8C7793D4DFF0A /* DSEG7Classic-Bold.ttf in Resources */,
+				6476ADA2AFBCD80158D607F2 /* NanumMyeongjo-ExtraBold.ttf in Resources */,
+				B2CB9A9D1139284465E2DA83 /* NanumMyeongjo-Regular.ttf in Resources */,
+				F712AC605843B901A644136E /* OFL.txt in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1CD53692AD52252F1CFC161D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A68861945436C88FFE7D8197 /* ShieldConfigurationExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8CEA0929B8D14D261A92AB39 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D2195302E96DAFD75D51EC0E /* DeviceActivityMonitorExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A2C89F7884F89B9FCE79A6F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9842821CB31F0EE0B1E27D1E /* ActiveLockView.swift in Sources */,
+				2DFE59FD5F5F53A18926419A /* ActiveSessionIDStore.swift in Sources */,
+				ED39FEECFBA093EFEEC1BBE2 /* ActivityScheduler.swift in Sources */,
+				ADFADC2A34741B619D089A21 /* CompletionRecord.swift in Sources */,
+				57D7245390BDD30FC3A93F8B /* DeepLinkHandler.swift in Sources */,
+				AE227E0ACB648921703B8805 /* KaraokeKit.swift in Sources */,
+				0C643BD72D67BA927380E819 /* LegalView.swift in Sources */,
+				F352DF98EB5C3C17BF13B354 /* LockScreenView.swift in Sources */,
+				861C1C7BEBF4ADF65DD3DD86 /* ManagedSettingsController.swift in Sources */,
+				AAE9ABE0D5394676269486C8 /* NotificationDelegate.swift in Sources */,
+				644BD70B290E64426B7F4FD5 /* PaywallView.swift in Sources */,
+				8C4A6ACAABDBB13ECD59E38C /* PermissionRequestView.swift in Sources */,
+				85A8D28C419060D91ECBE083 /* PhotoTaskView.swift in Sources */,
+				FBE506BAC584012B26F4BD8E /* RemoteControlView.swift in Sources */,
+				68C20666D2E7E40C243BE79C /* RemoteViewModel.swift in Sources */,
+				802FB0E9ACF3404C651B5063 /* ScreenTourView.swift in Sources */,
+				3A5F61C5929BD324F47E6D16 /* Session.swift in Sources */,
+				1A1040641B84CF4885D4C410 /* SessionDetailView.swift in Sources */,
+				E308FF4A8E65E5671F04CC81 /* SessionPreset.swift in Sources */,
+				89C63376EF3C7CBC4A3EE43E /* SessionShieldStore.swift in Sources */,
+				F86865EADC0B1D013CAF04C9 /* SessionStore.swift in Sources */,
+				BC9FFECA9155F8DC1D237C41 /* SettingsSheet.swift in Sources */,
+				A304FD3A37CC4D6195BDDB43 /* SubscriptionManager.swift in Sources */,
+				3644DA98C2A57A3BCC7646D5 /* TaskExecutionView.swift in Sources */,
+				0AC6AA9BA2FCFF2CA66AA5A3 /* TaskItem.swift in Sources */,
+				7F0C7D7B367C103ADEBAAA96 /* TaskPoolSheet.swift in Sources */,
+				7D3B72C4053955DB68E1FBD7 /* TempUnlock.swift in Sources */,
+				190275949CDA7957EA9C2889 /* TempUnlockController.swift in Sources */,
+				B416DACF4222743D36BB4E24 /* Ticker.swift in Sources */,
+				17A30875EE9BB9254BE116CF /* TimerTaskView.swift in Sources */,
+				A81862D8B50A9DA19902E5F4 /* TodoLockApp.swift in Sources */,
+				0FA67FEF34C5B5AD71352D9B /* WatchdogSheet.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B8EB7EE94CE784497776BB07 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DB6D8D783DF5C215F1BF679 /* ShieldActionExtension.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BBE5D085AD00B26795091810 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 81ACBDA415965A0067149FE5 /* ShieldAction */;
+			targetProxy = BF09BEDC31E363B8F1E58A06 /* PBXContainerItemProxy */;
+		};
+		BCE248AD4D806F077EB4D689 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F9BD409CE83E12DF0F7D6702 /* ActivityMonitorExtension */;
+			targetProxy = 601FC3FFFC2F40971BBE5A9B /* PBXContainerItemProxy */;
+		};
+		F3F7838B5906C0C521387A84 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2EF5AE1892B7112DFD42E8F4 /* ShieldConfiguration */;
+			targetProxy = 1E69C4B1239D746AB5756806 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		020D19BDEABC5CD9BA78B05F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldExtension/ShieldExtension.entitlements;
+				INFOPLIST_FILE = "ShieldExtension/ShieldConfiguration-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldConfiguration;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		2FBE01EFB6C8F3A7E8E94184 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				INFOPLIST_FILE = "ActivityMonitorExtension/ActivityMonitor-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ActivityMonitor;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		346BF220B619D72EC66AC327 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = U42553WVJN;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		37839A23E0BB6CA9EA10BC87 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				INFOPLIST_FILE = "ActivityMonitorExtension/ActivityMonitor-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ActivityMonitor;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		42D802C000569986B900374F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldExtension/ShieldExtension.entitlements;
+				INFOPLIST_FILE = "ShieldExtension/ShieldAction-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldAction;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		5685B7ACEBE082733181BEB9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldExtension/ShieldExtension.entitlements;
+				INFOPLIST_FILE = "ShieldExtension/ShieldConfiguration-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldConfiguration;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DF024A6E08A1C74D2F7B51C2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TodoLock/TodoLock.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = TodoLock/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E30F0AE61DA43326CB1101E5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = ShieldExtension/ShieldExtension.entitlements;
+				INFOPLIST_FILE = "ShieldExtension/ShieldAction-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldAction;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E5960DF45236D53EAB8CA5C0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TodoLock/TodoLock.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = TodoLock/Info.plist;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ED13BEAE65F905FD52FD086C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = U42553WVJN;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1F0116247D3B57BCCB5C4599 /* Build configuration list for PBXNativeTarget "ShieldConfiguration" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5685B7ACEBE082733181BEB9 /* Debug */,
+				020D19BDEABC5CD9BA78B05F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		77DA86BCED25C8594A9C6AA7 /* Build configuration list for PBXNativeTarget "ActivityMonitorExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				37839A23E0BB6CA9EA10BC87 /* Debug */,
+				2FBE01EFB6C8F3A7E8E94184 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9CDB98FDDB32E7FBE4EADE24 /* Build configuration list for PBXProject "TodoLock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				346BF220B619D72EC66AC327 /* Debug */,
+				ED13BEAE65F905FD52FD086C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		AC7D8559193DD93284FE77B4 /* Build configuration list for PBXNativeTarget "ShieldAction" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				42D802C000569986B900374F /* Debug */,
+				E30F0AE61DA43326CB1101E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		FAE47C251AD422091A5C2B8A /* Build configuration list for PBXNativeTarget "TodoLock" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E5960DF45236D53EAB8CA5C0 /* Debug */,
+				DF024A6E08A1C74D2F7B51C2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 86EF7C6A3FA164878593CBBC /* Project object */;
+}

@@ -1,0 +1,128 @@
+name: TodoLock
+options:
+  bundleIdPrefix: hime.app.todolock
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+settings:
+  base:
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: U42553WVJN
+    TARGETED_DEVICE_FAMILY: "1"
+
+targets:
+  # ── 메인 앱 ─────────────────────────────────────────────
+  TodoLock:
+    type: application
+    platform: iOS
+    sources:
+      - path: TodoLock
+        excludes:
+          - "**/*.entitlements"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: hime.app.todolock
+        CODE_SIGN_ENTITLEMENTS: TodoLock/TodoLock.entitlements
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: "YES"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: TodoLock/Info.plist
+      properties:
+        CFBundleDisplayName: 투두락
+        UILaunchScreen: {}
+        UIAppFonts:
+          - NanumMyeongjo-Regular.ttf
+          - NanumMyeongjo-ExtraBold.ttf
+          - DSEG7Classic-Bold.ttf
+        NSUserNotificationsUsageDescription: "차단된 앱에 접근할 때 과업 화면으로 안내하기 위해 알림을 사용합니다."
+        NSCameraUsageDescription: "사진 인증 과업을 수행할 때 카메라로 사진을 촬영합니다. 사진은 기기 안에서만 검수돼요."
+        NSPhotoLibraryUsageDescription: "카메라를 쓸 수 없는 경우 사진 보관함에서 인증 사진을 고릅니다."
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        CFBundleURLTypes:
+          - CFBundleURLName: hime.app.todolock
+            CFBundleURLSchemes:
+              - todolock
+    dependencies:
+      - target: ShieldConfiguration
+      - target: ShieldAction
+      - target: ActivityMonitorExtension
+
+  # ── Shield Configuration (잠금 화면 UI 구성) ─────────────
+  ShieldConfiguration:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldExtension/ShieldConfigurationExtension.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: hime.app.todolock.ShieldConfiguration
+        CODE_SIGN_ENTITLEMENTS: ShieldExtension/ShieldExtension.entitlements
+    info:
+      path: ShieldExtension/ShieldConfiguration-Info.plist
+      properties:
+        CFBundleDisplayName: ShieldConfiguration
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
+
+  # ── Shield Action (잠금 화면 버튼 처리) ──────────────────
+  ShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldExtension/ShieldActionExtension.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: hime.app.todolock.ShieldAction
+        CODE_SIGN_ENTITLEMENTS: ShieldExtension/ShieldExtension.entitlements
+    info:
+      path: ShieldExtension/ShieldAction-Info.plist
+      properties:
+        CFBundleDisplayName: ShieldAction
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+
+  # ── Device Activity Monitor (세션 만료 시 잠금 해제) ─────
+  ActivityMonitorExtension:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ActivityMonitorExtension/DeviceActivityMonitorExtension.swift
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: hime.app.todolock.ActivityMonitor
+        CODE_SIGN_ENTITLEMENTS: ActivityMonitorExtension/ActivityMonitorExtension.entitlements
+    info:
+      path: ActivityMonitorExtension/ActivityMonitor-Info.plist
+      properties:
+        CFBundleDisplayName: ActivityMonitor
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
+
+# 메인 앱 scheme을 공유 scheme으로 명시 생성 (익스텐션은 호스트 앱이 자동 포함).
+# 이게 없으면 Xcode 자동생성에 의존해 scheme이 안 뜨는 문제가 생김.
+schemes:
+  TodoLock:
+    build:
+      targets:
+        TodoLock: all
+    run:
+      config: Debug
+      # StoreKit 테스트용 설정. App Store Connect 없이 구독 결제 흐름을 검증.
+      storeKitConfiguration: TodoLock.storekit
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

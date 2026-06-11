@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>concept — 노래방 (명조 / 단일세션)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Serif+KR:wght@500;700;900&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink:#ff3b6b; --blue:#2f7bff; --green:#2fe27b; --yellow:#ffd23b; --purple:#b13bff; --cyan:#38e8e8;
+  }
+  * { box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+  html,body { margin:0; padding:0; background:#0c0a14; font-family:'Nanum Myeongjo',serif; color:#fff; }
+  body { padding:60px 24px 100px; }
+  .han{font-family:'Noto Serif KR',serif; font-weight:900;}   /* 노래방 자막 */
+  .do{font-family:'Nanum Myeongjo',serif; font-weight:700;}
+  .mono{font-family:'IBM Plex Mono',monospace;}               /* LED 숫자 */
+
+  .page-title{ text-align:center; color:rgba(255,255,255,0.4); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:4px; margin-bottom:56px; }
+  .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(340px,1fr)); gap:60px 36px; max-width:1500px; margin:0 auto; }
+  .screen-wrap{ display:flex; flex-direction:column; align-items:center; }
+  .label{ margin-top:18px; color:rgba(255,255,255,0.45); font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; text-align:center; }
+
+  .phone{ width:340px; height:710px; background:#000; border-radius:50px; padding:11px; position:relative; box-shadow:0 30px 80px rgba(0,0,0,0.7); }
+  .screen{ width:100%; height:100%; border-radius:40px; overflow:hidden; position:relative;
+    background:radial-gradient(120% 80% at 50% 0%, #2a1a4a 0%, #150f2a 45%, #0c0a14 100%); }
+  .island{ position:absolute; top:10px; left:50%; transform:translateX(-50%); width:100px; height:30px; background:#000; border-radius:18px; z-index:100; }
+
+  /* 디스코볼 조명 */
+  .disco{ position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden; border-radius:40px; }
+  .dot{ position:absolute; border-radius:50%; filter:blur(7px); opacity:0.85; animation:twinkle 3.5s ease-in-out infinite; }
+  @keyframes twinkle{ 0%,100%{opacity:0.4; transform:scale(0.85);} 50%{opacity:0.95; transform:scale(1.15);} }
+  .d1{width:26px;height:26px;background:var(--pink);top:60px;left:24px;animation-delay:0s;}
+  .d2{width:20px;height:20px;background:var(--blue);top:120px;right:30px;animation-delay:.6s;}
+  .d3{width:30px;height:30px;background:var(--green);top:30px;right:60px;animation-delay:1.2s;}
+  .d4{width:18px;height:18px;background:var(--yellow);top:220px;left:34px;animation-delay:.3s;}
+  .d5{width:24px;height:24px;background:var(--purple);bottom:170px;right:24px;animation-delay:1.5s;}
+  .d6{width:16px;height:16px;background:var(--cyan);bottom:130px;left:28px;animation-delay:.9s;}
+  .d7{width:22px;height:22px;background:var(--pink);bottom:70px;right:70px;animation-delay:2s;}
+  .d8{width:14px;height:14px;background:var(--yellow);top:90px;left:130px;animation-delay:1.8s;}
+  .d9{width:18px;height:18px;background:var(--blue);bottom:100px;left:90px;animation-delay:.4s;}
+
+  .layer{ position:relative; z-index:30; height:100%; padding:54px 22px 86px; display:flex; flex-direction:column; }
+
+  /* 현재곡 박스 */
+  .now-box{ display:inline-flex; align-items:stretch; border:2px solid rgba(255,255,255,0.5); border-radius:8px; overflow:hidden;
+    background:rgba(0,0,0,0.35); backdrop-filter:blur(4px); align-self:flex-start; }
+  .now-box .tag{ background:#1b8f3a; color:#fff; font-size:12px; padding:6px 9px; display:flex; align-items:center; font-family:'Nanum Myeongjo',serif; font-weight:700; letter-spacing:1px; }
+  .now-box .body{ padding:5px 12px; }
+  .now-box .no{ font-family:'IBM Plex Mono',monospace; font-size:22px; font-weight:700; color:#5dff8f; line-height:1; letter-spacing:1px; }
+  .now-box .sub{ font-size:11px; color:rgba(255,255,255,0.65); margin-top:2px; letter-spacing:0.5px; }
+
+  /* 게이지 */
+  .gauge-row{ display:flex; align-items:center; gap:10px; margin-top:16px; }
+  .gauge{ flex:1; height:10px; border:1.5px solid rgba(255,255,255,0.4); border-radius:6px; overflow:hidden; background:rgba(0,0,0,0.3); }
+  .gauge>div{ height:100%; border-radius:4px; background:linear-gradient(90deg,var(--green),var(--yellow),var(--pink)); }
+  .gauge-num{ font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:700; color:var(--yellow); }
+
+  /* 자막(가사) — 명조 */
+  .lyrics{ margin-top:auto; margin-bottom:6px; }
+  .lyric{ font-family:'Noto Serif KR',serif; font-weight:900; font-size:33px; line-height:1.2; position:relative; display:inline-block; color:#fff;
+    -webkit-text-stroke:5px #0c0a14; paint-order:stroke fill; margin:2px 0; }
+  .lyric.next{ color:rgba(255,255,255,0.8); font-weight:700; font-size:24px; -webkit-text-stroke:4px #0c0a14; }
+  .lyric .fill{ position:absolute; left:0; top:0; white-space:nowrap; overflow:hidden; color:var(--cyan); -webkit-text-stroke:5px #0c0a14; paint-order:stroke fill; }
+  .lyric-cap{ font-size:11px; color:var(--yellow); font-family:'IBM Plex Mono',monospace; letter-spacing:2px; margin-bottom:10px; text-shadow:0 0 8px rgba(255,210,59,.6); }
+
+  /* 앱 칩 */
+  .apps{ display:flex; gap:10px; flex-wrap:wrap; align-self:flex-start; margin-top:12px; }
+  .app{ width:46px; height:46px; border-radius:11px; background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2);
+    display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:#fff; position:relative; }
+  .app.on{ border-color:var(--pink); background:rgba(255,59,107,0.18); box-shadow:0 0 14px rgba(255,59,107,0.4); }
+  .app.on::after{ content:"✓"; position:absolute; top:-6px; right:-6px; width:18px; height:18px; background:var(--pink); color:#fff;
+    border-radius:50%; font-size:11px; display:flex; align-items:center; justify-content:center; }
+  .app.add{ border-style:dashed; color:rgba(255,255,255,0.5); }
+
+  /* 칩(시간) */
+  .chips{ display:flex; gap:7px; margin-top:11px; }
+  .chip{ flex:1; text-align:center; padding:11px 0; border-radius:9px; font-family:'IBM Plex Mono',monospace; font-size:13px;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:rgba(255,255,255,0.6); }
+  .chip.on{ background:var(--yellow); border-color:var(--yellow); color:#0c0a14; font-weight:700; }
+
+  /* 과업 종류 카드 */
+  .choice{ border:1.5px solid rgba(255,255,255,0.18); border-radius:15px; padding:14px 15px; margin-top:11px; background:rgba(255,255,255,0.05); }
+  .choice.on{ border-color:var(--pink); background:rgba(255,59,107,0.1); }
+  .choice .ct{ font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:18px; display:flex; align-items:center; gap:8px; }
+  .choice .cs{ font-size:12px; color:rgba(255,255,255,0.55); margin-top:6px; line-height:1.4; }
+  .mini-input{ background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:9px 10px; margin-top:8px;
+    font-size:14px; color:#fff; display:flex; align-items:center; gap:8px; }
+  .mini-input .b{ width:14px; height:14px; border:1.5px solid rgba(255,255,255,0.4); border-radius:3px; flex-shrink:0; }
+
+  /* 섹션 라벨 */
+  .section-cap{ font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:15px; letter-spacing:0.5px; }
+
+  /* 하단 리모컨 탭 */
+  .remote{ position:absolute; bottom:18px; left:18px; right:18px; z-index:40; display:flex; gap:8px; }
+  .remote .btn{ flex:1; text-align:center; padding:11px 0 9px; border-radius:10px; font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:14px; letter-spacing:1px;
+    background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.18); color:rgba(255,255,255,0.55); }
+  .remote .btn.active{ background:var(--pink); border-color:var(--pink); color:#fff; box-shadow:0 0 20px rgba(255,59,107,0.6); }
+
+  /* 버튼 */
+  .big-btn{ text-align:center; padding:15px 0; border-radius:13px; background:var(--green); color:#06210f;
+    font-family:'Nanum Myeongjo',serif; font-weight:800; font-size:19px; letter-spacing:2px; box-shadow:0 0 26px rgba(47,226,123,0.5); }
+  .ghost-btn{ text-align:center; font-family:'IBM Plex Mono',monospace; font-size:11px; color:rgba(255,255,255,0.5); letter-spacing:2px; margin-top:14px; }
+
+  /* 점수/완료 */
+  .center{ height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .score-num{ font-family:'Noto Serif KR',serif; font-weight:900; font-size:118px; line-height:.9; color:var(--yellow); -webkit-text-stroke:3px #0c0a14; text-shadow:0 0 40px rgba(255,210,59,.7); }
+  .score-num span{ font-size:44px; }
+  .clap{ font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:26px; margin-top:8px; }
+  .star-row{ font-size:24px; letter-spacing:6px; margin-top:12px; }
+
+  /* shield */
+  .shield-time{ font-family:'Noto Serif KR',serif; font-weight:900; font-size:70px; color:#fff; -webkit-text-stroke:4px #0c0a14; line-height:1; }
+  .shield-sub{ font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:15px; color:rgba(255,255,255,0.6); margin-top:8px; letter-spacing:1px; }
+
+  /* 예약곡(투두) */
+  .q-item{ display:flex; align-items:center; gap:12px; padding:13px 0; border-bottom:1px solid rgba(255,255,255,0.12); }
+  .q-no{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--yellow); width:24px; }
+  .q-title{ font-family:'Nanum Myeongjo',serif; font-weight:700; font-size:17px; color:#fff; flex:1; }
+  .q-title.done{ color:rgba(255,255,255,0.4); text-decoration:line-through; }
+  .q-tag{ font-size:10px; color:var(--cyan); font-family:'IBM Plex Mono',monospace; border:1px solid rgba(56,232,232,0.4); padding:2px 6px; border-radius:4px; }
+</style>
+</head>
+<body>
+
+<div class="page-title">CONCEPT — 노래방 · 명조 · 단일 세션</div>
+
+<div class="grid">
+
+  <!-- ===== 1. 앱 열면 첫 화면 = 잠글 앱 고르기 (메인, 카피 없음) ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco"><div class="dot d1"></div><div class="dot d3"></div><div class="dot d5"></div><div class="dot d8"></div></div>
+      <div class="layer">
+
+        <div class="now-box">
+          <div class="tag" style="background:var(--purple);">새 예약</div>
+          <div class="body"><div class="no" style="font-size:15px;">№ _ _ _ _</div></div>
+        </div>
+
+        <div style="margin-top:26px;">
+          <div class="section-cap" style="color:var(--cyan);">① 잠글 앱</div>
+          <div class="apps">
+            <div class="app on">IG</div><div class="app on">YT</div><div class="app on">X</div>
+            <div class="app">게임</div><div class="app add">＋</div>
+          </div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="section-cap" style="color:var(--yellow);">② 얼마나</div>
+          <div class="chips">
+            <div class="chip">1시간</div><div class="chip on">3시간</div><div class="chip">종일</div>
+          </div>
+        </div>
+
+        <div class="big-btn" style="margin-top:auto;">다음 ▶</div>
+
+      </div>
+      <div class="remote">
+        <div class="btn active">잠금</div><div class="btn">예약곡</div><div class="btn">마이</div>
+      </div>
+    </div></div>
+    <div class="label">01 · 앱 열면 첫 화면<br>(잠글 앱 고르기 · 메인)</div>
+  </div>
+
+  <!-- ===== 2. 그동안 할 일 = 타이머 / 체크리스트 ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco"><div class="dot d2"></div><div class="dot d4"></div><div class="dot d7"></div></div>
+      <div class="layer">
+
+        <div class="now-box">
+          <div class="tag" style="background:var(--purple);">새 예약</div>
+          <div class="body"><div class="no" style="font-size:14px;">인스타·유튜브·X</div><div class="sub">3시간 잠금</div></div>
+        </div>
+
+        <div style="margin-top:26px;">
+          <div class="section-cap" style="color:var(--green);">③ 그동안 할 일</div>
+        </div>
+
+        <div class="choice">
+          <div class="ct"><span>⏱️</span> 타이머</div>
+          <div class="cs">정한 시간만큼 딴짓 안 하고 집중하기</div>
+        </div>
+
+        <div class="choice on">
+          <div class="ct"><span>✍️</span> 체크리스트 <span style="font-size:12px; color:var(--pink);">· 양심껏</span></div>
+          <div class="cs">할 일 적어두고, 했다 치고 직접 체크</div>
+          <div class="mini-input"><span class="b"></span> 기획서 30분 쓰기</div>
+          <div class="mini-input"><span class="b"></span> 운동 20분</div>
+          <div class="mini-input" style="color:rgba(255,255,255,0.4);"><span class="b"></span> ＋ 할 일 적기</div>
+        </div>
+
+        <div class="big-btn" style="margin-top:auto;">▶ 잠그기 시작</div>
+
+      </div>
+      <div class="remote">
+        <div class="btn active">잠금</div><div class="btn">예약곡</div><div class="btn">마이</div>
+      </div>
+    </div></div>
+    <div class="label">02 · 그동안 할 일<br>(타이머 / 체크리스트)</div>
+  </div>
+
+  <!-- ===== 3. 현재 잠금 (진행 중) — 가사 ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div>
+        <div class="dot d5"></div><div class="dot d6"></div><div class="dot d7"></div><div class="dot d9"></div>
+      </div>
+      <div class="layer">
+
+        <div class="now-box">
+          <div class="tag">현재 잠금</div>
+          <div class="body"><div class="no">№0312</div><div class="sub">인스타 · 유튜브 · X</div></div>
+        </div>
+
+        <div class="gauge-row">
+          <div class="gauge"><div style="width:62%;"></div></div>
+          <div class="gauge-num">2:14 남음</div>
+        </div>
+
+        <div class="apps">
+          <div class="app">IG</div><div class="app">YT</div><div class="app">X</div>
+        </div>
+
+        <div class="lyrics">
+          <div class="lyric-cap">♪ 오늘 할 일 ♪</div>
+          <div class="lyric">기획서 30분 쓰기<span class="fill" style="width:62%;">기획서 30분 쓰기</span></div>
+          <br>
+          <div class="lyric next">다음 ▸ 운동 20분</div>
+        </div>
+
+      </div>
+      <div class="remote">
+        <div class="btn active">잠금</div><div class="btn">예약곡</div><div class="btn">마이</div>
+      </div>
+    </div></div>
+    <div class="label">03 · 현재 잠금 (진행 중)</div>
+  </div>
+
+  <!-- ===== 4. 앱 열었을 때 (SHIELD) — 절대 잠금, 남은 시간만 ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco"><div class="dot d1"></div><div class="dot d3"></div><div class="dot d5"></div><div class="dot d7"></div></div>
+      <div class="layer">
+        <div class="center">
+          <div class="now-box" style="margin-bottom:30px;">
+            <div class="tag" style="background:var(--pink);">잠금</div>
+            <div class="body"><div class="no" style="color:#fff;">INSTAGRAM</div></div>
+          </div>
+          <div class="shield-time">2:14</div>
+          <div class="shield-sub">남은 시간</div>
+
+          <div class="lyrics" style="margin-top:34px; margin-bottom:0;">
+            <div class="lyric-cap">♪ 그동안 할 일 ♪</div>
+            <div class="lyric" style="font-size:26px;">기획서 30분 쓰기</div>
+          </div>
+
+          <div class="ghost-btn" style="margin-top:40px;">— 닫기 —</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="label">04 · 앱 열었을 때 (잠금화면)</div>
+  </div>
+
+  <!-- ===== 5. 과업 수행 = 부르는 중 (해제랑 무관, 그냥 할 일 체크) ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco"><div class="dot d2"></div><div class="dot d4"></div><div class="dot d6"></div><div class="dot d8"></div></div>
+      <div class="layer">
+
+        <div class="now-box">
+          <div class="tag">부르는 중</div>
+          <div class="body"><div class="no" style="font-size:16px;">№0312</div><div class="sub">오늘 부를 곡 2곡</div></div>
+        </div>
+
+        <div class="gauge-row">
+          <div class="gauge"><div style="width:45%;"></div></div>
+          <div class="gauge-num">0:27</div>
+        </div>
+
+        <div class="lyrics">
+          <div class="lyric-cap">♪ 지금 부르는 중 ♪</div>
+          <div class="lyric">기획서 30분 쓰기<span class="fill" style="width:45%;">기획서 30분 쓰기</span></div>
+          <br>
+          <div class="lyric next">☐ 운동 20분 (다음 곡)</div>
+        </div>
+
+      </div>
+    </div></div>
+    <div class="label">05 · 과업 수행 (부르는 중)</div>
+  </div>
+
+  <!-- ===== 6. 완창 = 점수 (재미 보상, 해제 아님) ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco">
+        <div class="dot d1"></div><div class="dot d2"></div><div class="dot d3"></div><div class="dot d4"></div>
+        <div class="dot d5"></div><div class="dot d6"></div><div class="dot d7"></div><div class="dot d8"></div><div class="dot d9"></div>
+      </div>
+      <div class="layer">
+        <div class="center">
+          <div class="do" style="font-size:18px; color:var(--cyan); letter-spacing:1px;">기획서 30분 쓰기 완창!</div>
+          <div class="score-num">98<span>점</span></div>
+          <div class="clap">👏 짝짝짝 👏</div>
+          <div class="star-row">⭐⭐⭐⭐⭐</div>
+          <div class="big-btn" style="width:220px; margin-top:34px;">다음 곡 ▸ 운동 20분</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="label">06 · 완창 = 점수 (재미)</div>
+  </div>
+
+  <!-- ===== 7. 예약곡 = 투두 (보조 탭) ===== -->
+  <div class="screen-wrap">
+    <div class="phone"><div class="screen">
+      <div class="island"></div>
+      <div class="disco"><div class="dot d3"></div><div class="dot d5"></div><div class="dot d8"></div></div>
+      <div class="layer">
+
+        <div class="now-box">
+          <div class="tag" style="background:var(--blue);">예약곡</div>
+          <div class="body"><div class="no" style="font-size:16px;">오늘 4곡</div><div class="sub">1곡 완창</div></div>
+        </div>
+
+        <div style="margin-top:24px;">
+          <div class="section-cap" style="color:rgba(255,255,255,0.55);">부를 차례</div>
+          <div class="q-item"><div class="q-no">✓</div><div class="q-title done">아침 약 먹기</div></div>
+          <div class="q-item"><div class="q-no">01</div><div class="q-title">기획서 30분 쓰기</div><div class="q-tag">№0312</div></div>
+          <div class="q-item"><div class="q-no">02</div><div class="q-title">운동 20분</div><div class="q-tag">№0312</div></div>
+          <div class="q-item"><div class="q-no">03</div><div class="q-title">엄마한테 전화</div></div>
+        </div>
+
+        <div class="section-cap" style="margin-top:20px; color:var(--pink);">＋ 곡 추가 (할 일 적기)</div>
+
+      </div>
+      <div class="remote">
+        <div class="btn">잠금</div><div class="btn active">예약곡</div><div class="btn">마이</div>
+      </div>
+    </div></div>
+    <div class="label">07 · 예약곡 = 투두 (보조)</div>
+  </div>
+
+</div>
+
+</body>
+</html>
