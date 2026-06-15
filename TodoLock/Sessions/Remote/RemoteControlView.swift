@@ -13,17 +13,25 @@ struct RemoteControlView: View {
     @Query(sort: \Session.createdAt, order: .reverse) private var sessions: [Session]
 
     @State private var showingPicker = false
+    /// 감시 대상 앱 고르기용 별도 피커(잠글 앱 피커와 독립).
+    @State private var showingWatchdogPicker = false
     @State private var showingJump = false
     @State private var showingJumpBlockedAlert = false
     @State private var showingSettings = false
-    @State private var showingWatchdog = false
-    @State private var showingStartConfirm = false
+    /// 리모컨 모달 안에서 보여줄 페이지. 시작 확인·감시 설정은 모달 위에 새 모달을
+    /// 띄우지 않고(=이중 모달 금지) 이 값만 바꿔 모달 안에서 좌우로 밀어 전환한다.
+    @State private var page: RemotePage = .keypad
+    /// 키패드 페이지의 실측 높이. 시작/감시 페이지를 같은 높이로 맞춰 전환이
+    /// 위아래로 튀지 않고 순수 좌우 슬라이드로만 보이게 한다.
+    @State private var keypadHeight: CGFloat = 0
     @State private var errorMessage: String?
     @State private var taskExecutionSessionId: UUID?
     @State private var editingPreset: SessionPreset?
 
     /// 막힌 시작 버튼을 눌렀을 때 잠깐 보여주는 안내. 일정 시간 뒤 사라진다.
     @State private var blockHint: String?
+    /// 안내가 오류(빨강)인지 알림(틸)인지. 감시를 걸었을 때의 확인 메시지는 틸로 보여준다.
+    @State private var blockHintIsNotice = false
     /// 안내 자동 숨김 타이머 식별용. 연타 시 이전 타이머가 새 안내를 지우지 않게 한다.
     @State private var blockHintGeneration = 0
 
@@ -69,16 +77,12 @@ struct RemoteControlView: View {
                 SessionDetailView(sessionId: id)
             }
             .familyActivityPicker(isPresented: $showingPicker, selection: $vm.selection)
+            .familyActivityPicker(isPresented: $showingWatchdogPicker, selection: $vm.watchdogSelection)
             .sheet(isPresented: $showingJump) {
                 TaskPoolSheet()
             }
             .sheet(isPresented: $showingSettings) {
                 SettingsSheet()
-            }
-            .sheet(isPresented: $showingWatchdog) {
-                WatchdogSheet(onClose: { showingWatchdog = false })
-                    // 감시는 앱 고르기 + 한도 한 줄이면 끝이라 작게(medium) 떠도 충분하다.
-                    .presentationDetents([.medium, .large])
             }
             .fullScreenCover(isPresented: Binding(
                 get: { !activeSessions.isEmpty },
@@ -93,17 +97,6 @@ struct RemoteControlView: View {
                 set: { taskExecutionSessionId = $0?.id }
             )) { wrapper in
                 TaskExecutionView(sessionId: wrapper.id)
-            }
-            .sheet(isPresented: $showingStartConfirm) {
-                StartConfirmSheet(
-                    selection: vm.selection,
-                    durationText: durationText(vm.totalSeconds),
-                    onStart: {
-                        showingStartConfirm = false
-                        start()
-                    },
-                    onCancel: { showingStartConfirm = false }
-                )
             }
             .alert("시작 실패", isPresented: Binding(
                 get: { errorMessage != nil },
@@ -149,23 +142,24 @@ struct RemoteControlView: View {
 
             header
 
-            if let session = activeSessions.first {
-                activeBanner(session)
+            // 모달 위 모달 대신, 한 모달 안에서 화면만 좌우로 밀어 전환한다.
+            // 키패드는 왼쪽 가장자리, 시작/감시 카드는 오른쪽 가장자리로 드나든다.
+            ZStack {
+                switch page {
+                case .keypad:
+                    keypadPage
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .leading).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)))
+                case .start:
+                    startCard
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .trailing).combined(with: .opacity)))
+                }
             }
-
-            LEDDisplay(days: vm.daysString, hours: vm.hoursString, minutes: vm.minutesString)
-
-            controlSplit
-
-            if let hint = blockHint {
-                Text(hint)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
-                    .foregroundStyle(Color(hex: 0xe8533a))
-                    .frame(maxWidth: .infinity)
-                    .transition(.opacity)
-            }
-
-            startButton
+            // 슬라이드 중 옆 페이지가 모달 밖으로 삐져나오지 않게 가둔다.
+            .clipped()
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
@@ -182,6 +176,59 @@ struct RemoteControlView: View {
                 .overlay { remoteFilm }
                 .ignoresSafeArea(edges: .bottom)
         }
+    }
+
+    // MARK: - 리모컨 모달 안의 페이지들
+
+    /// 기본 페이지 — LED·기능키·숫자패드·시작. 높이를 실측해 시작/감시 카드와 맞춘다.
+    private var keypadPage: some View {
+        VStack(spacing: 13) {
+            if let session = activeSessions.first {
+                activeBanner(session)
+            }
+
+            // 감시 모드에선 같은 LED가 하루 한도(HOUR:MIN)를 남보라로 보여준다.
+            // DAY 자리는 빼고, 색만 바꿔 위치/크기는 그대로 둔다(레이아웃 불변).
+            if vm.mode == .watchdog {
+                LEDDisplay(days: "", hours: vm.watchdogHoursString, minutes: vm.watchdogMinutesString,
+                           showDays: false,
+                           lit: Color(hex: 0x8f9bff), barLit: Color(hex: 0x8f9bff))
+            } else {
+                LEDDisplay(days: vm.daysString, hours: vm.hoursString, minutes: vm.minutesString)
+            }
+
+            controlSplit
+
+            if let hint = blockHint {
+                Text(hint)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .foregroundStyle(blockHintIsNotice ? Color(hex: 0x15897b) : Color(hex: 0xe8533a))
+                    .frame(maxWidth: .infinity)
+                    .transition(.opacity)
+            }
+
+            startButton
+        }
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: PanelHeightKey.self, value: proxy.size.height)
+            }
+        )
+        .onPreferenceChange(PanelHeightKey.self) { keypadHeight = $0 }
+    }
+
+    /// 시작 확인 카드 — 모달 위 시트가 아니라 키패드와 같은 높이의 카드로 끼워 넣는다.
+    private var startCard: some View {
+        StartConfirmSheet(
+            selection: vm.selection,
+            durationText: durationText(vm.totalSeconds),
+            onStart: {
+                go(to: .keypad)
+                start()
+            },
+            onCancel: { go(to: .keypad) }
+        )
+        .frame(height: keypadHeight > 0 ? keypadHeight : nil)
     }
 
     /// 비닐막 — 리모컨 모달 표면의 라미네이트 느낌(사선 빛줄기 + 가장자리 광). 터치는 통과.
@@ -299,9 +346,11 @@ struct RemoteControlView: View {
             }
             HStack(spacing: 8) {
                 if modes.count > 1 { presetButton(modes[1]) }
-                WatchdogButton { showingWatchdog = true }
+                WatchdogButton(isActive: vm.mode == .watchdog) { toggleWatchdog() }
             }
-            Button { showingPicker = true } label: { manageBar }
+            Button {
+                if vm.mode == .watchdog { showingWatchdogPicker = true } else { showingPicker = true }
+            } label: { manageBar }
                 .buttonStyle(.plain)
         }
     }
@@ -382,10 +431,18 @@ struct RemoteControlView: View {
         .allowsHitTesting(false)
     }
 
-    /// 좌측 컬럼 하단의 2줄 빨간 "잠글 앱 관리" 블록. 남은 높이를 채워 숫자패드와 바닥을 맞춘다.
+    /// 좌측 컬럼 하단의 2줄 앱 관리 블록. 남은 높이를 채워 숫자패드와 바닥을 맞춘다.
+    /// 잠금=빨강 "잠글 앱 관리", 감시=틸 "감시할 앱 고르기"로 모드에 따라 바뀐다.
     private var manageBar: some View {
-        let count = vm.selection.applicationTokens.count
-        return Text(count == 0 ? "잠글 앱\n관리" : "잠글 앱\n관리 · \(count)")
+        let watchdog = vm.mode == .watchdog
+        let count = watchdog ? watchdogSelectionCount : vm.selection.applicationTokens.count
+        let title: String = watchdog
+            ? (count == 0 ? "감시할 앱\n고르기" : "감시할 앱\n· \(count)")
+            : (count == 0 ? "잠글 앱\n관리" : "잠글 앱\n관리 · \(count)")
+        let colors = watchdog
+            ? [Color(hex: 0x2bb5a4), Color(hex: 0x15897b)]
+            : [Color(hex: 0xec5743), Color(hex: 0xd23522)]
+        return Text(title)
             .multilineTextAlignment(.center)
             .lineSpacing(1)
             .font(.system(size: 18, weight: .black))
@@ -393,12 +450,18 @@ struct RemoteControlView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 10).fill(
-                    LinearGradient(colors: [Color(hex: 0xec5743), Color(hex: 0xd23522)],
-                                   startPoint: .top, endPoint: .bottom)
+                    LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
                 )
             )
             .overlay(alignment: .top) { keycapGloss(radius: 10) }
             .overlay(RoundedRectangle(cornerRadius: 10).stroke(.black.opacity(0.18), lineWidth: 1))
+    }
+
+    /// 감시 대상 개수(앱+카테고리+웹도메인).
+    private var watchdogSelectionCount: Int {
+        vm.watchdogSelection.applicationTokens.count
+        + vm.watchdogSelection.categoryTokens.count
+        + vm.watchdogSelection.webDomainTokens.count
     }
 
     // MARK: - 숫자패드
@@ -422,24 +485,29 @@ struct RemoteControlView: View {
     }
 
     private var startButton: some View {
+        // 잠금=노랑 "시 작 ▶", 감시=검정 "오늘부터 감시 걸기 ▶".
+        let watchdog = vm.mode == .watchdog
         // 막혔을 때도 탭은 받아서 안내를 띄운다(.disabled 이면 탭이 안 들어옴).
-        Button(action: tapStart) {
-            Text("시 작 ▶")
-                .font(.system(size: 30, weight: .black))
-                .tracking(6)
-                .foregroundStyle(Color(hex: 0x2a2e06))
+        return Button(action: watchdog ? tapWatchdogStart : tapStart) {
+            Text(watchdog ? "오늘부터 감시 걸기 ▶" : "시 작 ▶")
+                .font(.system(size: watchdog ? 22 : 30, weight: .black))
+                .tracking(watchdog ? 1 : 6)
+                .foregroundStyle(watchdog ? .white : Color(hex: 0x2a2e06))
                 .frame(maxWidth: .infinity)
                 .frame(height: 66)
                 .background(
                     RoundedRectangle(cornerRadius: 30).fill(
-                        LinearGradient(colors: [Color(hex: 0xf7ff5e), Color(hex: 0xe9f600)],
-                                       startPoint: .top, endPoint: .bottom)
+                        LinearGradient(
+                            colors: watchdog
+                                ? [Color(hex: 0x34322c), Color(hex: 0x111111)]
+                                : [Color(hex: 0xf7ff5e), Color(hex: 0xe9f600)],
+                            startPoint: .top, endPoint: .bottom)
                     )
                 )
                 .overlay(alignment: .top) { keycapGloss(radius: 30) }
                 .overlay(RoundedRectangle(cornerRadius: 30).stroke(.black.opacity(0.18), lineWidth: 1))
                 // 뿌연 네온 글로우 제거 — 실물처럼 또렷한 아날로그 버튼으로.
-                .opacity(vm.canStart ? 1 : 0.45)
+                .opacity((watchdog ? vm.canSaveWatchdog : vm.canStart) ? 1 : 0.45)
         }
         .buttonStyle(.plain)
     }
@@ -448,21 +516,61 @@ struct RemoteControlView: View {
     private func tapStart() {
         if vm.canStart {
             blockHint = nil
-            showingStartConfirm = true
+            go(to: .start)
         } else if let reason = vm.startBlockReason {
             showBlockHint(reason)
         }
     }
 
+    /// 감시 걸기 탭. 가능하면 곧장 감시를 걸고(확인 시트 없음), 아니면 막힌 이유를 안내한다.
+    private func tapWatchdogStart() {
+        if vm.canSaveWatchdog {
+            startWatchdog()
+        } else if let reason = vm.watchdogBlockReason {
+            showBlockHint(reason)
+        }
+    }
+
+    /// 리모컨 모달 안에서 페이지를 바꾼다. 키패드는 왼쪽 가장자리로, 시작/감시
+    /// 페이지는 오른쪽 가장자리로 드나들어 "앞으로/뒤로" 내비게이션처럼 보인다.
+    private func go(to newPage: RemotePage) {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
+            page = newPage
+        }
+    }
+
     /// 안내를 띄우고 2.5초 뒤 자동으로 숨긴다. 연타 시 마지막 안내 기준으로만 숨김.
-    private func showBlockHint(_ message: String) {
+    /// isNotice면 오류(빨강)가 아니라 알림(틸)으로 보여준다.
+    private func showBlockHint(_ message: String, isNotice: Bool = false) {
         blockHintGeneration += 1
         let generation = blockHintGeneration
-        withAnimation(.easeOut(duration: 0.2)) { blockHint = message }
+        withAnimation(.easeOut(duration: 0.2)) {
+            blockHint = message
+            blockHintIsNotice = isNotice
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
             guard blockHintGeneration == generation else { return }
             withAnimation(.easeOut(duration: 0.3)) { blockHint = nil }
         }
+    }
+
+    /// 감시 모드 ↔ 잠금 모드 토글. 감시 키로 호출한다.
+    private func toggleWatchdog() {
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
+            vm.mode = vm.mode == .watchdog ? .lock : .watchdog
+            blockHint = nil
+        }
+    }
+
+    /// 감시를 건다. 지금은 UI 흐름만 — 실제 등록은 TODO. 끝나면 잠금 모드로 돌아오며 확인을 띄운다.
+    private func startWatchdog() {
+        // TODO(피드백 후 배선): 감시 설정(watchdogSelection + 한도)을 App Group에 저장 →
+        //   DeviceActivityCenter에 daily 스케줄 + threshold(watchdogTotalSeconds) 이벤트 등록.
+        //   알림 권한이 거절 상태면 "설정에서 알림 켜기" 안내를 띄운다.
+        //   넘는 순간 익스텐션 eventDidReachThreshold → 로컬 알림 → 탭 시 시작 확인 시트(딥링크).
+        let limit = durationText(vm.watchdogTotalSeconds)
+        withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { vm.mode = .lock }
+        showBlockHint("감시를 걸었어요 · 하루 \(limit)", isNotice: true)
     }
 
     // MARK: - 동작
@@ -519,6 +627,18 @@ struct RemoteControlView: View {
 }
 
 private struct IdentifiableUUID: Identifiable { let id: UUID }
+
+/// 리모컨 모달 안에서 보여줄 페이지. (모달 위 모달 대신 한 모달 안에서 전환)
+/// 감시는 별도 페이지가 아니라 키패드 페이지의 한 "모드"로 동작한다(vm.mode).
+private enum RemotePage { case keypad, start }
+
+/// 키패드 페이지 높이를 부모로 올려 보내, 시작/감시 카드를 같은 높이로 맞추는 키.
+private struct PanelHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
 
 // MARK: - 노래방 선곡 대기 화면 (리모컨 위로 보이는 빈 TV)
 
@@ -608,34 +728,27 @@ private struct StartConfirmSheet: View {
     private var totalCount: Int { appCount + categoryCount + webCount }
 
     var body: some View {
-        // large detent으로 끌어올리면 시트 상단이 상태바/노치와 겹친다.
-        // GeometryReader로 "시트 기준" top 인셋을 읽어(medium일 땐 0) 타이틀바가
-        // 그만큼 위로 파란 배경을 채우게 한다. ignoresSafeArea는 .top만 — 하단
-        // 액션바는 홈 인디케이터 위에 그대로 남도록 둔다.
-        GeometryReader { proxy in
-            VStack(spacing: 0) {
-                titleBar(topInset: proxy.safeAreaInsets.top)
-                bodyArea
-                bottomBar
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-            .background(
-                LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
-                               startPoint: .top, endPoint: .bottom)
-            )
-            .ignoresSafeArea(edges: .top)
-            // 시트의 둥근 상단 모서리에 맞춰 콘텐츠를 클립한다.
-            // (안 하면 파란 타이틀바의 사각 모서리가 둥근 모서리 밖으로 삐져나온다)
-            .clipShape(.rect(topLeadingRadius: 10, topTrailingRadius: 10))
+        // 모달 위 시트가 아니라, 리모컨 모달 안에 끼워지는 카드. 키패드와 같은
+        // 높이를 부모가 잡아주므로 여기선 그 높이를 가득 채우고 둥글게 클립만 한다.
+        VStack(spacing: 0) {
+            titleBar
+            bodyArea
+            bottomBar
         }
-        .presentationDetents([.medium, .large])
-        .presentationDragIndicator(.hidden)
-        .presentationBackground(Color(hex: 0x0a1326))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(
+            LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
+                           startPoint: .top, endPoint: .bottom)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16).stroke(Color(hex: 0x2d4f86), lineWidth: 1.5)
+        )
     }
 
     // MARK: 파란 타이틀바
 
-    private func titleBar(topInset: CGFloat) -> some View {
+    private var titleBar: some View {
         HStack(spacing: 10) {
             waveCircle
             OutlinedText(text: "잠시만 안녕할까요?", size: 19,
@@ -644,10 +757,7 @@ private struct StartConfirmSheet: View {
             durationChip
         }
         .padding(.horizontal, 12)
-        // 위쪽 여백을 넉넉히 줘서 타이틀이 시트의 둥근 상단 모서리에 걸치지 않게 한다.
-        // 여기에 safe area(topInset)까지 더해, large로 끌어올리면 파란 배경이
-        // 노치 뒤까지 풀블리드로 채워진다.
-        .padding(.top, 22 + topInset)
+        .padding(.top, 14)
         .padding(.bottom, 11)
         .frame(maxWidth: .infinity)
         .background(
@@ -735,8 +845,12 @@ struct LEDDisplay: View {
     var digitSize: CGFloat = 46
     /// 양옆 그래픽 이퀄라이저 바. 슬림 리모컨처럼 좁은 곳에선 끈다.
     var showBars: Bool = true
-
-    private let lit = Color(hex: 0xff5a32)
+    /// 감시 모드에선 DAY 자리를 숨기고 HOUR:MIN만 보여준다.
+    var showDays: Bool = true
+    /// 7세그먼트 발광색. 잠금=주황, 감시=남보라.
+    var lit: Color = Color(hex: 0xff5a32)
+    /// 이퀄라이저 바 발광색. 잠금=초록, 감시=남보라.
+    var barLit: Color = Color(hex: 0x4ee87f)
 
     var body: some View {
         Group {
@@ -763,8 +877,10 @@ struct LEDDisplay: View {
 
     private var digitRow: some View {
         HStack(alignment: .firstTextBaseline, spacing: 4) {
-            digitGroup(days, label: "DAY")
-            colon
+            if showDays {
+                digitGroup(days, label: "DAY")
+                colon
+            }
             digitGroup(hours, label: "HOUR")
             colon
             digitGroup(minutes, label: "MIN")
@@ -800,9 +916,9 @@ struct LEDDisplay: View {
         VStack(spacing: 3) {
             ForEach(greens.indices, id: \.self) { i in
                 RoundedRectangle(cornerRadius: 1)
-                    .fill(greens[i] ? Color(hex: 0x4ee87f) : Color(hex: 0x5dff8f).opacity(0.16))
+                    .fill(greens[i] ? barLit : barLit.opacity(0.16))
                     .frame(width: 12, height: 5)
-                    .shadow(color: greens[i] ? Color(hex: 0x4ee87f).opacity(0.85) : .clear, radius: 4)
+                    .shadow(color: greens[i] ? barLit.opacity(0.85) : .clear, radius: 4)
             }
         }
     }

@@ -27,11 +27,13 @@ struct TaskPoolSheet: View {
             .sheet(item: $runningTask) { TaskRunView(task: $0, onFinished: closeSheet) }
     }
 
-    /// asCard면 위쪽 여백으로 잠금 화면이 비치는 둥근 카드, 아니면 화면을 꽉 채운다.
+    /// asCard면 둥근 카드로, 아니면 화면을 꽉 채운다.
+    /// 카드는 과업 실행 화면(시트)과 같은 크기로 보이도록 상단 여백을 시트 수준으로만 두고,
+    /// 그 아래로 잠금 화면 타이틀까지 덮는다. (작은 여백엔 잠금 화면이 살짝 비칠 뿐)
     @ViewBuilder private var presentationBody: some View {
         if asCard {
             VStack(spacing: 0) {
-                Spacer(minLength: 70)   // 위 여백 — 그 아래로 잠금 화면이 비친다
+                Spacer(minLength: 10)   // 시트와 같은 작은 상단 여백 — 타이틀은 카드가 덮는다
                 ZStack {
                     NeonBlurBackground()
                     content
