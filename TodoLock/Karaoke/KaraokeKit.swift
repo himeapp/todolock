@@ -368,6 +368,8 @@ struct KaraokeButtonStyle: ButtonStyle {
 /// 옛날 노래방처럼 과업을 마치면 "100점"이 뜨는 점수판.
 struct KaraokeScore: View {
     var score: Int = 100
+    /// 자체 카드(배경+테두리)를 그릴지. 투어 모니터 틀 안에 넣을 땐 꺼서 카드 중첩을 막는다.
+    var framed: Bool = true
     @State private var pop = false
 
     var body: some View {
@@ -393,14 +395,16 @@ struct KaraokeScore: View {
                 .foregroundStyle(KColor.pink)
                 .shadow(color: KColor.pink.opacity(0.8), radius: 8)
         }
-        .padding(.vertical, 18)
-        .padding(.horizontal, 34)
-        .background(
-            RoundedRectangle(cornerRadius: 18)
-                .fill(Color.black.opacity(0.42))
-                .overlay(RoundedRectangle(cornerRadius: 18).stroke(KColor.yellow.opacity(0.65), lineWidth: 2))
-        )
-        .shadow(color: KColor.yellow.opacity(0.4), radius: 26)
+        .padding(.vertical, framed ? 18 : 0)
+        .padding(.horizontal, framed ? 34 : 0)
+        .background {
+            if framed {
+                RoundedRectangle(cornerRadius: 18)
+                    .fill(Color.black.opacity(0.42))
+                    .overlay(RoundedRectangle(cornerRadius: 18).stroke(KColor.yellow.opacity(0.65), lineWidth: 2))
+            }
+        }
+        .shadow(color: KColor.yellow.opacity(framed ? 0.4 : 0), radius: framed ? 26 : 0)
         .scaleEffect(pop ? 1 : 0.6)
         .onAppear {
             withAnimation(.spring(response: 0.45, dampingFraction: 0.55)) { pop = true }

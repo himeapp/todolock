@@ -992,8 +992,8 @@ private struct PresetButton: View {
             .overlay(alignment: .top) { keycapGloss(radius: 8) }
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(selected ? Color(hex: 0xd23522) : .black.opacity(0.2),
-                            lineWidth: selected ? 2 : 1)
+                    .strokeBorder(selected ? Color(hex: 0x3f73bd) : .black.opacity(0.2),
+                                  lineWidth: selected ? 2 : 1)
             )
         }
         .buttonStyle(.plain)

@@ -10,6 +10,13 @@ struct PaywallView: View {
     @State private var showReassure = false
     /// 안심 팝업을 닫을 때마다 띄우는 앱 소개 투어 표시 여부.
     @State private var showTour = false
+    /// 최초 실행 시 투어를 자동으로 딱 한 번 띄웠는지. (X→닫기 수동 경로는 이 값과 무관하게 매번 동작)
+    @AppStorage("hasSeenTour") private var hasSeenTour = false
+
+    /// 수록곡 목록에서 노래방 커서처럼 강조되는 행 인덱스. 일정 간격으로 번갈아 움직인다.
+    @State private var selectedSong = 0
+    /// 강조 행을 번갈아 옮기는 타이머.
+    private let songTimer = Timer.publish(every: 2.2, on: .main, in: .common).autoconnect()
 
     /// 상품에서 받은 표시 가격(예: "₩3,000"). 로드 전이면 기본 문구.
     private var priceText: String {
@@ -38,8 +45,8 @@ struct PaywallView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 18) {
-                Spacer(minLength: 12)
+            VStack(spacing: 22) {
+                Spacer(minLength: 36)
 
                 Image(systemName: "music.mic")
                     .font(.system(size: 52, weight: .bold))
@@ -61,23 +68,19 @@ struct PaywallView: View {
                         .shadow(color: accent.opacity(0.6), radius: 8)
                 }
 
-                OutlinedText(text: "투두락 멤버십",
-                             size: 32, fill: KColor.yellow, strokeWidth: 4, alignment: .center)
+                // 제목 '노래방 가사 채움' — 청록(빈색)에서 노랑(채움)이 왼→오로 차오르고
+                // 다 채우면 3초 유지 후 다음 소절처럼 리셋. 남색 외곽선은 그대로 유지.
+                KaraokeFillTitle(text: "투두락 멤버십",
+                                 size: 32, strokeWidth: 4,
+                                 base: accent, fill: KColor.yellow)
                     .padding(.horizontal, 20)
 
-                Text(headline)
-                    .font(.myungjoLight(16))
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .shadow(color: .black.opacity(0.7), radius: 2)
-                    .shadow(color: .black.opacity(0.4), radius: 5)
-                    .padding(.horizontal, 28)
+                benefitSongList
+                    .padding(.top, 8)
 
-                featureList
-                    .padding(.horizontal, 32)
-                    .padding(.top, 2)
-
+                // 가운데 여백은 상한을 둬서, 남는 공간이 위쪽으로 가도록(=콘텐츠가 더 내려오도록) 한다.
                 Spacer(minLength: 8)
+                    .frame(maxHeight: 44)
 
                 priceBadge
 
@@ -164,9 +167,20 @@ struct PaywallView: View {
         } message: {
             Text(subscription.errorMessage ?? "")
         }
-        // 안심 팝업을 닫은 직후 딱 한 번 뜨는 앱 소개 투어.
+        // 안심 팝업을 닫은 직후, 그리고 최초 실행 시 자동으로 뜨는 앱 소개 투어.
         .fullScreenCover(isPresented: $showTour) {
-            ScreenTourView { showTour = false }
+            ScreenTourView {
+                showTour = false
+                hasSeenTour = true   // 어떤 경로로 봤든 본 뒤엔 자동 노출을 끈다.
+            }
+        }
+        // 최초 실행 1회 자동 노출. (이후엔 X→닫기 수동 경로로만 다시 뜬다.)
+        .onAppear {
+            if !hasSeenTour {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                    if !hasSeenTour { showTour = true }
+                }
+            }
         }
     }
 
@@ -176,49 +190,100 @@ struct PaywallView: View {
         return "멤버십 시작하기"
     }
 
-    private var headline: String {
-        if let trial = trialText {
-            return "\(trial) 동안 모든 기능을 무료로 써보세요.\n체험 중 취소하면 요금이 청구되지 않아요."
+    /// 멤버십 혜택을 '노래방 선곡 화면'처럼 보여준다.
+    /// 컬러·룩은 앱의 KaraokeSongList(검정 반투명 · 청록 LED 코드 · 흰 곡명 · 노랑 태그)에 맞췄고,
+    /// 강조 행은 앱의 노래방 파랑(KColor.highlight)으로. 강조는 두 행을 번갈아 옮겨 다닌다.
+    private var benefitSongList: some View {
+        VStack(spacing: 0) {
+            // 헤더 — "🔍 수록곡"
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(KColor.cyan)
+                Text("수록곡")
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(.white)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 9)
+            .background(Color.black.opacity(0.28))
+            .overlay(alignment: .bottom) {
+                Rectangle().fill(.white.opacity(0.10)).frame(height: 1)
+            }
+
+            songRow(code: KaraokeSongList.songCode(0),
+                    title: "참아야 할 앱 잠금 · 감시", tag: "무제한", selected: selectedSong == 0)
+            songRow(code: KaraokeSongList.songCode(1),
+                    title: "급할 땐 간주 점프", tag: "15분", selected: selectedSong == 1)
         }
-        return "월 \(priceText)으로 앱 잠금·과업 기능을\n제한 없이 사용할 수 있어요."
+        .background(Color.black.opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.1), lineWidth: 1))
+        .shadow(color: .black.opacity(0.4), radius: 12, y: 5)
+        .padding(.horizontal, 24)
+        .environment(\.colorScheme, .dark)
+        .onReceive(songTimer) { _ in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                selectedSong = (selectedSong + 1) % 2
+            }
+        }
     }
 
-    private var featureList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            featureRow("원하는 앱·카테고리 잠금")
-            featureRow("과업(타이머·사진 인증)으로 15분만 잠금 해제")
-        }
-    }
-
-    private func featureRow(_ text: String) -> some View {
+    /// 선곡 화면의 한 곡 행 — [코드번호] [곡명] ……… [태그].
+    /// 강조 행은 노래방처럼 파란 막대가 깔린다(크로스페이드로 부드럽게 옮겨 다님).
+    private func songRow(code: String, title: String, tag: String, selected: Bool) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: "checkmark.seal.fill")
-                .foregroundStyle(accent)
-                .shadow(color: .black.opacity(0.4), radius: 1.5)
-            Text(text)
-                .font(.myungjoLight(15))
+            Text(code)
+                .font(.led(13))
+                .foregroundStyle(KColor.cyan)
+                .frame(width: 54, alignment: .leading)
+            Text(title)
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.white)
-                .shadow(color: .black.opacity(0.65), radius: 1.5)
-            Spacer(minLength: 0)
+                .lineLimit(1)
+            Spacer(minLength: 6)
+            Text(tag)
+                .font(.myungjoLight(13))
+                .foregroundStyle(KColor.yellow.opacity(0.9))
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 11)
+        .frame(maxWidth: .infinity)
+        .background(
+            LinearGradient(colors: [KColor.highlight, Color(red: 0.10, green: 0.34, blue: 0.72)],
+                           startPoint: .top, endPoint: .bottom)
+                .opacity(selected ? 1 : 0)
+        )
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
         }
     }
 
     private var priceBadge: some View {
-        VStack(spacing: 2) {
-            if let trial = trialText {
-                Text("\(trial) 무료 · 이후 월 \(priceText)")
-                    .font(.system(size: 19, weight: .bold, design: .rounded))
-                    .foregroundStyle(KColor.yellow)
-                    .shadow(color: KColor.yellow.opacity(0.6), radius: 10)
-            } else {
-                Text("월 \(priceText)")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(KColor.yellow)
-                    .shadow(color: KColor.yellow.opacity(0.6), radius: 10)
+        ZStack {
+            // 가격 주변을 살랑살랑 떠다니는 음표들 (가격 텍스트 뒤).
+            FloatingNotes(accent: accent)
+                .frame(maxWidth: .infinity)
+                .frame(height: 96)
+                .allowsHitTesting(false)
+
+            VStack(spacing: 2) {
+                if let trial = trialText {
+                    Text("\(trial) 무료 · 이후 월 \(priceText)")
+                        .font(.system(size: 19, weight: .bold, design: .rounded))
+                        .foregroundStyle(KColor.yellow)
+                        .shadow(color: KColor.yellow.opacity(0.6), radius: 10)
+                } else {
+                    Text("월 \(priceText)")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(KColor.yellow)
+                        .shadow(color: KColor.yellow.opacity(0.6), radius: 10)
+                }
+                Text("자동 갱신 · 언제든 해지 가능")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.white.opacity(0.6))
             }
-            Text("자동 갱신 · 언제든 해지 가능")
-                .font(.system(size: 12))
-                .foregroundStyle(.white.opacity(0.6))
         }
     }
 
@@ -239,6 +304,110 @@ struct PaywallView: View {
             }
             .font(.system(size: 12))
             .tint(accent)
+        }
+    }
+}
+
+// MARK: - 제목 노래방 가사 채움
+
+/// 제목을 노래방 가사처럼 왼쪽부터 채운다.
+/// `base`(빈 색)로 깔린 글자 위에 `fill`(채움 색) 글자를 얹고, 왼쪽에서부터 마스크 폭을
+/// 0→1로 키워 색이 차오르게 한다. 다 채우면 `holdDuration`만큼 유지 후 다음 소절처럼 리셋.
+/// 외곽선(stroke)은 두 레이어 모두 동일해 항상 또렷하게 유지된다.
+private struct KaraokeFillTitle: View {
+    let text: String
+    var size: CGFloat = 32
+    var strokeWidth: CGFloat = 4
+    var base: Color          // 빈 색 (예: 청록)
+    var fill: Color          // 채움 색 (예: 노랑)
+
+    /// 왼→오로 차오르는 데 걸리는 시간(초).
+    private let fillDuration: Double = 1.8
+    /// 다 채운 뒤 머무는 시간(초).
+    private let holdDuration: Double = 3.0
+
+    var body: some View {
+        let cycle = fillDuration + holdDuration
+        TimelineView(.animation) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            let local = t.truncatingRemainder(dividingBy: cycle)
+            let raw = local < fillDuration ? local / fillDuration : 1.0
+            let progress = easeInOut(raw)
+
+            OutlinedText(text: text, size: size, fill: base,
+                         strokeWidth: strokeWidth, alignment: .center)
+                .overlay(alignment: .leading) {
+                    OutlinedText(text: text, size: size, fill: fill,
+                                 strokeWidth: strokeWidth, alignment: .center)
+                        .mask(alignment: .leading) {
+                            GeometryReader { geo in
+                                Rectangle()
+                                    .frame(width: geo.size.width * progress)
+                            }
+                        }
+                }
+        }
+    }
+
+    private func easeInOut(_ x: Double) -> Double {
+        x < 0.5 ? 2 * x * x : 1 - pow(-2 * x + 2, 2) / 2
+    }
+}
+
+// MARK: - 가격 주변에 떠다니는 음표
+
+/// '월 ₩3,000' 주위를 살랑살랑 떠다니는 음표들.
+/// 가격 폭보다 넓게 좌우로 흩뿌려 두고, 각자 다른 속도·위상으로 위아래로 까딱이며 살짝 회전한다.
+private struct FloatingNotes: View {
+    /// 청록 포인트색(페이월 강조색)을 받아 음표 색에 섞어 쓴다.
+    let accent: Color
+
+    /// 까딱임 한 주기(초).
+    private let period: Double = 3.4
+
+    private struct Note {
+        let symbol: String
+        let x: CGFloat        // 가로 위치(0~1)
+        let y: CGFloat        // 세로 위치(0~1)
+        let size: CGFloat
+        let color: Color
+        let baseRotation: Double
+        let delay: Double     // 위상 차
+        let opacity: Double
+    }
+
+    private var notes: [Note] {
+        [
+            Note(symbol: "♪", x: 0.05, y: 0.62, size: 18, color: accent,       baseRotation: -14, delay: 0.0, opacity: 1.0),
+            Note(symbol: "♫", x: 0.20, y: 0.18, size: 13, color: KColor.yellow, baseRotation:   9, delay: 1.0, opacity: 0.8),
+            Note(symbol: "♩", x: 0.33, y: 0.85, size: 12, color: accent,       baseRotation:  -7, delay: 2.0, opacity: 0.7),
+            Note(symbol: "♪", x: 0.69, y: 0.12, size: 13, color: KColor.pink,   baseRotation:  12, delay: 0.5, opacity: 0.8),
+            Note(symbol: "♬", x: 0.82, y: 0.80, size: 14, color: accent,       baseRotation: -11, delay: 1.6, opacity: 0.85),
+            Note(symbol: "♪", x: 0.96, y: 0.55, size: 19, color: KColor.yellow, baseRotation:  15, delay: 0.3, opacity: 1.0),
+            Note(symbol: "♫", x: 0.48, y: 0.04, size: 12, color: KColor.pink,   baseRotation:   0, delay: 2.4, opacity: 0.65),
+        ]
+    }
+
+    var body: some View {
+        TimelineView(.animation) { ctx in
+            let t = ctx.date.timeIntervalSinceReferenceDate
+            GeometryReader { geo in
+                ForEach(notes.indices, id: \.self) { i in
+                    let note = notes[i]
+                    // 0~1 사이를 오가는 사인 위상 (까딱임).
+                    let u = (sin(2 * .pi * (t + note.delay) / period) + 1) / 2
+                    Text(note.symbol)
+                        .font(.system(size: note.size, weight: .bold))
+                        .foregroundStyle(note.color)
+                        .opacity(note.opacity)
+                        .shadow(color: note.color.opacity(0.75), radius: 6)
+                        .rotationEffect(.degrees(note.baseRotation + 7 * u))
+                        .position(
+                            x: note.x * geo.size.width,
+                            y: note.y * geo.size.height - 9 * u
+                        )
+                }
+            }
         }
     }
 }

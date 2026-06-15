@@ -79,6 +79,14 @@ final class SubscriptionManager: ObservableObject {
     /// 현재 유효한 구독권이 있는지 확인. currentEntitlements는
     /// 만료/환불되지 않은 트랜잭션만 내보내므로, 우리 상품이 있으면 구독 중.
     func refreshSubscriptionStatus() async {
+        #if DEBUG
+        // 개발용 강제 미구독 토글. true면 실제 트랜잭션과 무관하게 항상 미구독으로 본다.
+        // 릴리즈 빌드에선 컴파일되지 않는다.
+        if Self.forceUnsubscribed {
+            isSubscribed = false
+            return
+        }
+        #endif
         var active = false
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else { continue }
@@ -89,6 +97,12 @@ final class SubscriptionManager: ObservableObject {
         }
         isSubscribed = active
     }
+
+    #if DEBUG
+    /// 개발 중 페이월·미구독 화면을 확인하기 위한 강제 미구독 스위치.
+    /// true로 두면 구매/복원이 있어도 항상 미구독으로 동작한다. (DEBUG 전용)
+    static let forceUnsubscribed = true
+    #endif
 
     /// 월 구독 구매.
     func purchase() async {
