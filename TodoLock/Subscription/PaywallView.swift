@@ -54,19 +54,11 @@ struct PaywallView: View {
                     .shadow(color: .black.opacity(0.5), radius: 3)
                     .shadow(color: accent.opacity(0.7), radius: 16)
 
-                if let trial = trialText {
-                    Text("♪  \(trial) 무료 체험  ♪")
-                        .font(.led(15).weight(.heavy))
-                        .foregroundStyle(accent)
-                        .shadow(color: .black.opacity(0.6), radius: 2)
-                        .shadow(color: accent.opacity(0.6), radius: 8)
-                } else {
-                    Text("♪  멤버십  ♪")
-                        .font(.led(15).weight(.heavy))
-                        .foregroundStyle(accent)
-                        .shadow(color: .black.opacity(0.6), radius: 2)
-                        .shadow(color: accent.opacity(0.6), radius: 8)
-                }
+                Text(trialText != nil ? "♪  무료 체험  ♪" : "♪  멤버십  ♪")
+                    .font(.led(15).weight(.heavy))
+                    .foregroundStyle(accent)
+                    .shadow(color: .black.opacity(0.6), radius: 2)
+                    .shadow(color: accent.opacity(0.6), radius: 8)
 
                 // 제목 '노래방 가사 채움' — 청록(빈색)에서 노랑(채움)이 왼→오로 차오르고
                 // 다 채우면 3초 유지 후 다음 소절처럼 리셋. 남색 외곽선은 그대로 유지.
@@ -184,9 +176,9 @@ struct PaywallView: View {
         }
     }
 
-    /// 메인 CTA 문구. 체험 자격이 있으면 "일주일 무료체험 시작".
+    /// 메인 CTA 문구. 체험 자격이 있으면 "7일 무료로 시작하기"(기간은 동적).
     private var ctaTitle: String {
-        if trialText != nil { return "일주일 무료체험 시작" }
+        if let trial = trialText { return "\(trial) 무료로 시작하기" }
         return "멤버십 시작하기"
     }
 
