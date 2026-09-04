@@ -50,6 +50,7 @@
 		B19DE7000000000000000027 /* NanumMyeongjo-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9FB249B1272CDB6426437D2 /* NanumMyeongjo-ExtraBold.ttf */; };
 		B19DE7000000000000000028 /* NanumMyeongjo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */; };
 		B19DE7000000000000000029 /* DSEG7Classic-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */; };
+		B19DE7000000000000000091 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */; };
 		B2CB9A9D1139284465E2DA83 /* NanumMyeongjo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */; };
 		B416DACF4222743D36BB4E24 /* Ticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6798D6785B6A6DB0C65426B /* Ticker.swift */; };
 		BC9FFECA9155F8DC1D237C41 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */; };
@@ -60,7 +61,6 @@
 		ED39FEECFBA093EFEEC1BBE2 /* ActivityScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE28D88EC955F853042668A9 /* ActivityScheduler.swift */; };
 		F352DF98EB5C3C17BF13B354 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803E13DF89B6333A50D0A91A /* LockScreenView.swift */; };
 		F712AC605843B901A644136E /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = A00BACE9E3A46AE670ED1225 /* OFL.txt */; };
-		B19DE7000000000000000091 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */; };
 		F86865EADC0B1D013CAF04C9 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C76873FCB1A373018C3725C6 /* SessionStore.swift */; };
 		FBE506BAC584012B26F4BD8E /* RemoteControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D99139578B232B0FF83DE9 /* RemoteControlView.swift */; };
 /* End PBXBuildFile section */
@@ -129,7 +129,6 @@
 		35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DSEG7Classic-Bold.ttf"; sourceTree = "<group>"; };
 		3B27336AE2EC58ED54323024 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalView.swift; sourceTree = "<group>"; };
 		3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4B1CA6385D3381D30AE9B0CD /* TaskPoolSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPoolSheet.swift; sourceTree = "<group>"; };
 		578FC45A1D515F856A063EC2 /* ShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F76F39799D9DCD43426F01D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -153,6 +152,7 @@
 		B19DE7000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B19DE7000000000000000016 /* TodoLockWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TodoLockWidgets.entitlements; sourceTree = "<group>"; };
 		B19DE7000000000000000017 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B515EF0F98D650239C289CEC /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		B98D28F4AD6E2291F9F5517A /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
@@ -718,7 +718,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = U42553WVJN;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -925,7 +925,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = U42553WVJN;
 				ENABLE_NS_ASSERTIONS = NO;
