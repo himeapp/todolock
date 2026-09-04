@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import FamilyControls
+import Combine
 
 @main
 struct TodoLockApp: App {
@@ -38,6 +39,8 @@ struct TodoLockApp: App {
 struct RootView: View {
     @EnvironmentObject var authState: AuthorizationState
     @EnvironmentObject var subscription: SubscriptionManager
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
 
     var body: some View {
         Group {
@@ -57,12 +60,37 @@ struct RootView: View {
             }
         }
         .task { await authState.refresh() }
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active {
+                // 포어그라운드 복귀 시 구독 만료·취소를 즉시 반영.
+                Task { await subscription.refreshSubscriptionStatus() }
+                // Live Activity를 활성 세션과 맞춘다(만료분 종료·신규 보장).
+                if #available(iOS 16.1, *) {
+                    let sessions = SessionStore(modelContext: modelContext).activeSessions()
+                    LiveActivityController.reconcile(activeSessions: sessions)
+                }
+            }
+        }
     }
 }
 
 @MainActor
 final class AuthorizationState: ObservableObject {
     @Published var isAuthorized: Bool = false
+
+    private var cancellable: AnyCancellable?
+
+    init() {
+        #if !targetEnvironment(simulator)
+        // authorizationStatus는 콜드 런치 직후 잠깐 .notDetermined를 반환했다가 실제 값으로 갱신된다.
+        // 한 번 스냅샷으로 읽으면 승인된 사용자도 권한 화면이 떠버리므로, published 상태를 구독해 따라간다.
+        cancellable = AuthorizationCenter.shared.$authorizationStatus
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                self?.isAuthorized = status == .approved
+            }
+        #endif
+    }
 
     func refresh() async {
         #if targetEnvironment(simulator)

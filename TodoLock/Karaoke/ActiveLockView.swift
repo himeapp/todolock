@@ -3,7 +3,7 @@ import SwiftData
 
 /// 잠금이 시작된 뒤 보이는 노래방 TV 화면.
 /// 개념: "참고 잠겨있는 것 = 노래를 부르는 중". 가사는 앱과 이별한 슬픔(?)을 노래한다.
-/// 점프(과업)로 임시 해제가 걸려 있는 동안엔 노래가 "간주 중"으로 잠깐 멈추고,
+/// 점프(과제)로 임시 해제가 걸려 있는 동안엔 노래가 "간주 중"으로 잠깐 멈추고,
 /// 간주가 끝나면 3·2·1을 센 뒤 멈춘 지점부터 이어 부른다.
 struct ActiveLockView: View {
     @ObservedObject private var ticker = Ticker.shared
@@ -134,6 +134,12 @@ struct ActiveLockView: View {
             }
         }
         .onAppear(perform: syncInterludeOnAppear)
+        .onChange(of: ticker.now) { _, _ in
+            // 잠금화면 Live Activity 가사를 현재 줄로 넘긴다(앱 포그라운드 동안).
+            if #available(iOS 16.1, *) {
+                LiveActivityController.refreshLine(isPaused: inInterlude)
+            }
+        }
         .onChange(of: interludeEndsAt) { old, new in
             handleInterludeChange(old: old, new: new)
         }

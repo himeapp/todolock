@@ -43,16 +43,20 @@ final class SessionStore {
     func start(
         endsAt: Date,
         selection: FamilyActivitySelection,
-        passDurationMinutes: Int
+        passDurationMinutes: Int,
+        title: String = "",
+        nickname: String = ""
     ) throws -> Session {
-        // 과업은 잠긴 앱을 열 때 전역 풀에서 골라 수행한다. 세션 자체엔 과업이 묶이지 않는다.
+        // 과제은 잠긴 앱을 열 때 전역 풀에서 골라 수행한다. 세션 자체엔 과제이 묶이지 않는다.
         let conflict = lockedAppTokens().intersection(selection.applicationTokens)
         guard conflict.isEmpty else { throw SessionStartError.appAlreadyLocked }
 
         let session = Session(
             endsAt: endsAt,
             selection: selection,
-            passDurationMinutes: passDurationMinutes
+            passDurationMinutes: passDurationMinutes,
+            title: title,
+            nickname: nickname
         )
         modelContext.insert(session)
         try modelContext.save()
@@ -72,6 +76,14 @@ final class SessionStore {
         }
 
         ActiveSessionIDStore.shared.add(session.id)
+        // 완주하면 앱 진입 시 축하(콘페티+100점)할 대상으로 등록.
+        KaraokeCelebrationTracker.markStarted(session.id)
+        // 차단 화면(쉴드)이 "간주 점프 N분" 문구에 쓸 보너스 시간을 App Group에 공유.
+        UserDefaults(suiteName: "group.hime.app.todolock")?
+            .set(passDurationMinutes, forKey: "passDurationMinutes")
+        if #available(iOS 16.1, *) {
+            LiveActivityController.start(session: session)
+        }
         return session
     }
 

@@ -11,6 +11,39 @@ final class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     /// 메인 앱 ActivityScheduler.relockSuffix와 동일해야 한다.
     private static let relockSuffix = "|relock"
+    /// 메인 앱 ActivityScheduler.watchdogActivityName과 동일해야 한다.
+    private static let watchdogActivityRaw = "watchdog"
+    /// 감시 전용 ManagedSettingsStore 이름 (메인 앱 ManagedSettingsController와 동일).
+    private static let watchdogStoreName = ManagedSettingsStore.Name(rawValue: "watchdog")
+
+    /// 하루 한도 도달 — 감시 대상 앱을 그날 자정까지 차단한다.
+    override func eventDidReachThreshold(_ event: DeviceActivityEvent.Name, activity: DeviceActivityName) {
+        super.eventDidReachThreshold(event, activity: activity)
+        guard activity.rawValue == Self.watchdogActivityRaw else { return }
+        guard let data = WatchdogShareStore.shared.selectionData(),
+              let selection = try? JSONDecoder().decode(FamilyActivitySelection.self, from: data)
+        else { return }
+
+        let store = ManagedSettingsStore(named: Self.watchdogStoreName)
+        let apps = selection.applicationTokens
+        store.shield.applications = apps.isEmpty ? nil : apps
+        store.shield.applicationCategories = selection.categoryTokens.isEmpty
+            ? nil
+            : .specific(selection.categoryTokens, except: [])
+        store.shield.webDomainCategories = selection.categoryTokens.isEmpty
+            ? nil
+            : .specific(selection.categoryTokens, except: [])
+    }
+
+    /// 새 날 시작 — 어제 걸어둔 감시 차단을 해제해 한도를 리셋한다.
+    override func intervalDidStart(for activity: DeviceActivityName) {
+        super.intervalDidStart(for: activity)
+        guard activity.rawValue == Self.watchdogActivityRaw else { return }
+        let store = ManagedSettingsStore(named: Self.watchdogStoreName)
+        store.shield.applications = nil
+        store.shield.applicationCategories = nil
+        store.shield.webDomainCategories = nil
+    }
 
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
@@ -99,4 +132,16 @@ final class SessionShieldStore {
         m[sessionId.uuidString] = nil
         defaults?.set(m, forKey: key)
     }
+}
+
+/// 메인 앱 WatchdogShareStore와 동일한 App Group 키(읽기 전용).
+/// 별도 타깃이라 코드 공유가 안 돼서 중복 정의.
+final class WatchdogShareStore {
+    static let shared = WatchdogShareStore()
+    static let appGroupId = "group.hime.app.todolock"
+    private let selectionKey = "watchdogSelectionData"
+
+    private var defaults: UserDefaults? { UserDefaults(suiteName: Self.appGroupId) }
+
+    func selectionData() -> Data? { defaults?.data(forKey: selectionKey) }
 }

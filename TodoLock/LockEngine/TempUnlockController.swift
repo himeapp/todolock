@@ -3,7 +3,7 @@ import ManagedSettings
 import FamilyControls
 import SwiftData
 
-/// 과업 완료 시 특정 앱을 임시 해제하고, N분 뒤 다시 잠금.
+/// 과제 완료 시 특정 앱을 임시 해제하고, N분 뒤 다시 잠금.
 final class TempUnlockController {
     static let shared = TempUnlockController()
 

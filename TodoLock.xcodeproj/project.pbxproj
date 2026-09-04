@@ -39,6 +39,17 @@
 		AAE9ABE0D5394676269486C8 /* NotificationDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD32D45055FB6A1A4704FB1A /* NotificationDelegate.swift */; };
 		ADFADC2A34741B619D089A21 /* CompletionRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB79042FFD34147AD377C03 /* CompletionRecord.swift */; };
 		AE227E0ACB648921703B8805 /* KaraokeKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0755EF283CD694DB83C2FE2C /* KaraokeKit.swift */; };
+		B19DE700000000000000000A /* TodoLockWidgets.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000002 /* TodoLockWidgets.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		B19DE7000000000000000020 /* TodoLockWidgetsBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000010 /* TodoLockWidgetsBundle.swift */; };
+		B19DE7000000000000000021 /* LockSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000011 /* LockSharedState.swift */; };
+		B19DE7000000000000000022 /* LockLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000012 /* LockLiveActivity.swift */; };
+		B19DE7000000000000000023 /* LockHomeWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000013 /* LockHomeWidget.swift */; };
+		B19DE7000000000000000024 /* WidgetKaraokeStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000014 /* WidgetKaraokeStyle.swift */; };
+		B19DE7000000000000000025 /* LockSharedState.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000011 /* LockSharedState.swift */; };
+		B19DE7000000000000000026 /* LiveActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000017 /* LiveActivityController.swift */; };
+		B19DE7000000000000000027 /* NanumMyeongjo-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F9FB249B1272CDB6426437D2 /* NanumMyeongjo-ExtraBold.ttf */; };
+		B19DE7000000000000000028 /* NanumMyeongjo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */; };
+		B19DE7000000000000000029 /* DSEG7Classic-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */; };
 		B2CB9A9D1139284465E2DA83 /* NanumMyeongjo-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 6B86320B3BEAC52B1BEE0CCA /* NanumMyeongjo-Regular.ttf */; };
 		B416DACF4222743D36BB4E24 /* Ticker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E6798D6785B6A6DB0C65426B /* Ticker.swift */; };
 		BC9FFECA9155F8DC1D237C41 /* SettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */; };
@@ -49,6 +60,7 @@
 		ED39FEECFBA093EFEEC1BBE2 /* ActivityScheduler.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE28D88EC955F853042668A9 /* ActivityScheduler.swift */; };
 		F352DF98EB5C3C17BF13B354 /* LockScreenView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 803E13DF89B6333A50D0A91A /* LockScreenView.swift */; };
 		F712AC605843B901A644136E /* OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = A00BACE9E3A46AE670ED1225 /* OFL.txt */; };
+		B19DE7000000000000000091 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */; };
 		F86865EADC0B1D013CAF04C9 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = C76873FCB1A373018C3725C6 /* SessionStore.swift */; };
 		FBE506BAC584012B26F4BD8E /* RemoteControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17D99139578B232B0FF83DE9 /* RemoteControlView.swift */; };
 /* End PBXBuildFile section */
@@ -67,6 +79,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = F9BD409CE83E12DF0F7D6702;
 			remoteInfo = ActivityMonitorExtension;
+		};
+		B19DE7000000000000000009 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 86EF7C6A3FA164878593CBBC /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B19DE7000000000000000001;
+			remoteInfo = TodoLockWidgets;
 		};
 		BF09BEDC31E363B8F1E58A06 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -87,6 +106,7 @@
 				7B09AD0E8549ABE72ADBE53F /* ShieldConfiguration.appex in Embed Foundation Extensions */,
 				D3A8396059A75E9304589A96 /* ShieldAction.appex in Embed Foundation Extensions */,
 				1B6104A8267D6C077B64282F /* ActivityMonitorExtension.appex in Embed Foundation Extensions */,
+				B19DE700000000000000000A /* TodoLockWidgets.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -109,6 +129,7 @@
 		35A290AFF20EF6B5B6D45D11 /* DSEG7Classic-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "DSEG7Classic-Bold.ttf"; sourceTree = "<group>"; };
 		3B27336AE2EC58ED54323024 /* LegalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalView.swift; sourceTree = "<group>"; };
 		3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4B1CA6385D3381D30AE9B0CD /* TaskPoolSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPoolSheet.swift; sourceTree = "<group>"; };
 		578FC45A1D515F856A063EC2 /* ShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F76F39799D9DCD43426F01D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -123,11 +144,20 @@
 		A00BACE9E3A46AE670ED1225 /* OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = OFL.txt; sourceTree = "<group>"; };
 		A1D2DB7499D4805E449830E0 /* PermissionRequestView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionRequestView.swift; sourceTree = "<group>"; };
 		B0907CC842FD84BA86D838DD /* SessionPreset.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionPreset.swift; sourceTree = "<group>"; };
-		B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B19DE7000000000000000002 /* TodoLockWidgets.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = TodoLockWidgets.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B19DE7000000000000000010 /* TodoLockWidgetsBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoLockWidgetsBundle.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000011 /* LockSharedState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockSharedState.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000012 /* LockLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockLiveActivity.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000013 /* LockHomeWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockHomeWidget.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000014 /* WidgetKaraokeStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetKaraokeStyle.swift; sourceTree = "<group>"; };
+		B19DE7000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B19DE7000000000000000016 /* TodoLockWidgets.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TodoLockWidgets.entitlements; sourceTree = "<group>"; };
+		B19DE7000000000000000017 /* LiveActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityController.swift; sourceTree = "<group>"; };
+		B4A6E339273EB44942AEEEC1 /* ActivityMonitorExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ActivityMonitorExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B515EF0F98D650239C289CEC /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		B98D28F4AD6E2291F9F5517A /* ShieldActionExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShieldActionExtension.swift; sourceTree = "<group>"; };
 		BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = ShieldConfiguration.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = TodoLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TodoLock.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C76873FCB1A373018C3725C6 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStore.swift; sourceTree = "<group>"; };
 		C967D15B4AAE813D5B3FA34C /* SettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsSheet.swift; sourceTree = "<group>"; };
 		D259A669C0B5A40787DCAD54 /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
@@ -249,12 +279,27 @@
 			path = Subscription;
 			sourceTree = "<group>";
 		};
+		B19DE700000000000000000B /* TodoLockWidgets */ = {
+			isa = PBXGroup;
+			children = (
+				B19DE7000000000000000010 /* TodoLockWidgetsBundle.swift */,
+				B19DE7000000000000000011 /* LockSharedState.swift */,
+				B19DE7000000000000000012 /* LockLiveActivity.swift */,
+				B19DE7000000000000000013 /* LockHomeWidget.swift */,
+				B19DE7000000000000000014 /* WidgetKaraokeStyle.swift */,
+				B19DE7000000000000000015 /* Info.plist */,
+				B19DE7000000000000000016 /* TodoLockWidgets.entitlements */,
+			);
+			path = TodoLockWidgets;
+			sourceTree = "<group>";
+		};
 		B9B0044826BAA81E76672579 = {
 			isa = PBXGroup;
 			children = (
 				EC118CC317E37642D7B8076B /* ActivityMonitorExtension */,
 				A5E6E4149C5FF2060E930AB5 /* ShieldExtension */,
 				3289D708E94E357BDE84A3C7 /* TodoLock */,
+				B19DE700000000000000000B /* TodoLockWidgets */,
 				C07C0451EF418A450A14D960 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -266,6 +311,7 @@
 				578FC45A1D515F856A063EC2 /* ShieldAction.appex */,
 				BCD56923A65786B60B480EFC /* ShieldConfiguration.appex */,
 				BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */,
+				B19DE7000000000000000002 /* TodoLockWidgets.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -300,6 +346,7 @@
 				21C20E339C27555DF2E3B415 /* ActiveSessionIDStore.swift */,
 				DE28D88EC955F853042668A9 /* ActivityScheduler.swift */,
 				800FCB7E37FDE8440D853C3F /* ManagedSettingsController.swift */,
+				B19DE7000000000000000017 /* LiveActivityController.swift */,
 				1D144A6B5E9DDE7389C5F1F8 /* SessionShieldStore.swift */,
 				10A3090149C5C1595EF2AF3A /* TempUnlockController.swift */,
 			);
@@ -319,6 +366,7 @@
 			children = (
 				D05F4E8F7F45A44AC10CE6DF /* Fonts */,
 				3B87AFF21D4D52D87BCF34DD /* Assets.xcassets */,
+				B19DE7000000000000000090 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -374,6 +422,7 @@
 				F3F7838B5906C0C521387A84 /* PBXTargetDependency */,
 				BBE5D085AD00B26795091810 /* PBXTargetDependency */,
 				BCE248AD4D806F077EB4D689 /* PBXTargetDependency */,
+				B19DE7000000000000000008 /* PBXTargetDependency */,
 			);
 			name = TodoLock;
 			packageProductDependencies = (
@@ -381,6 +430,24 @@
 			productName = TodoLock;
 			productReference = BDA3C43A1D35CC0666AC2E3E /* TodoLock.app */;
 			productType = "com.apple.product-type.application";
+		};
+		B19DE7000000000000000001 /* TodoLockWidgets */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B19DE7000000000000000003 /* Build configuration list for PBXNativeTarget "TodoLockWidgets" */;
+			buildPhases = (
+				B19DE7000000000000000006 /* Sources */,
+				B19DE7000000000000000007 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TodoLockWidgets;
+			packageProductDependencies = (
+			);
+			productName = TodoLockWidgets;
+			productReference = B19DE7000000000000000002 /* TodoLockWidgets.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 		F9BD409CE83E12DF0F7D6702 /* ActivityMonitorExtension */ = {
 			isa = PBXNativeTarget;
@@ -420,8 +487,11 @@
 						DevelopmentTeam = U42553WVJN;
 						ProvisioningStyle = Automatic;
 					};
-					F9BD409CE83E12DF0F7D6702 = {
+					B19DE7000000000000000001 = {
 						DevelopmentTeam = U42553WVJN;
+						ProvisioningStyle = Automatic;
+					};
+					F9BD409CE83E12DF0F7D6702 = {
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -444,6 +514,7 @@
 				81ACBDA415965A0067149FE5 /* ShieldAction */,
 				2EF5AE1892B7112DFD42E8F4 /* ShieldConfiguration */,
 				9ED734B71D8850A6678971B3 /* TodoLock */,
+				B19DE7000000000000000001 /* TodoLockWidgets */,
 			);
 		};
 /* End PBXProject section */
@@ -459,6 +530,17 @@
 				6476ADA2AFBCD80158D607F2 /* NanumMyeongjo-ExtraBold.ttf in Resources */,
 				B2CB9A9D1139284465E2DA83 /* NanumMyeongjo-Regular.ttf in Resources */,
 				F712AC605843B901A644136E /* OFL.txt in Resources */,
+				B19DE7000000000000000091 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B19DE7000000000000000007 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B19DE7000000000000000027 /* NanumMyeongjo-ExtraBold.ttf in Resources */,
+				B19DE7000000000000000028 /* NanumMyeongjo-Regular.ttf in Resources */,
+				B19DE7000000000000000029 /* DSEG7Classic-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -494,6 +576,8 @@
 				0C643BD72D67BA927380E819 /* LegalView.swift in Sources */,
 				F352DF98EB5C3C17BF13B354 /* LockScreenView.swift in Sources */,
 				861C1C7BEBF4ADF65DD3DD86 /* ManagedSettingsController.swift in Sources */,
+				B19DE7000000000000000025 /* LockSharedState.swift in Sources */,
+				B19DE7000000000000000026 /* LiveActivityController.swift in Sources */,
 				AAE9ABE0D5394676269486C8 /* NotificationDelegate.swift in Sources */,
 				644BD70B290E64426B7F4FD5 /* PaywallView.swift in Sources */,
 				8C4A6ACAABDBB13ECD59E38C /* PermissionRequestView.swift in Sources */,
@@ -520,6 +604,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B19DE7000000000000000006 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B19DE7000000000000000020 /* TodoLockWidgetsBundle.swift in Sources */,
+				B19DE7000000000000000021 /* LockSharedState.swift in Sources */,
+				B19DE7000000000000000022 /* LockLiveActivity.swift in Sources */,
+				B19DE7000000000000000023 /* LockHomeWidget.swift in Sources */,
+				B19DE7000000000000000024 /* WidgetKaraokeStyle.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B8EB7EE94CE784497776BB07 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -531,6 +627,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		B19DE7000000000000000008 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B19DE7000000000000000001 /* TodoLockWidgets */;
+			targetProxy = B19DE7000000000000000009 /* PBXContainerItemProxy */;
+		};
 		BBE5D085AD00B26795091810 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 81ACBDA415965A0067149FE5 /* ShieldAction */;
@@ -569,6 +670,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				DEVELOPMENT_TEAM = U42553WVJN;
 				INFOPLIST_FILE = "ActivityMonitorExtension/ActivityMonitor-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -653,6 +755,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = ActivityMonitorExtension/ActivityMonitorExtension.entitlements;
+				DEVELOPMENT_TEAM = U42553WVJN;
 				INFOPLIST_FILE = "ActivityMonitorExtension/ActivityMonitor-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -697,13 +800,50 @@
 			};
 			name = Debug;
 		};
+		B19DE7000000000000000004 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TodoLockWidgets/TodoLockWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = TodoLockWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.TodoLockWidgets;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		B19DE7000000000000000005 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = TodoLockWidgets/TodoLockWidgets.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = TodoLockWidgets/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.TodoLockWidgets;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		DF024A6E08A1C74D2F7B51C2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TodoLock/TodoLock.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = TodoLock/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "투두락 TodoLock";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -736,8 +876,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TodoLock/TodoLock.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
 				INFOPLIST_FILE = TodoLock/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "투두락 TodoLock";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -845,6 +986,15 @@
 			buildConfigurations = (
 				42D802C000569986B900374F /* Debug */,
 				E30F0AE61DA43326CB1101E5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B19DE7000000000000000003 /* Build configuration list for PBXNativeTarget "TodoLockWidgets" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B19DE7000000000000000004 /* Debug */,
+				B19DE7000000000000000005 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

@@ -24,6 +24,7 @@ final class SubscriptionManager: ObservableObject {
     /// 이 사용자가 무료 체험(introductory offer)을 받을 자격이 있는지.
     /// 이미 한 번 체험·구독했던 사용자에겐 false가 되어 "무료 체험" 문구를 숨긴다.
     @Published private(set) var isEligibleForTrial = true
+    private var storeKitTrialEligibility = true
 
     private var updatesTask: Task<Void, Never>?
 
@@ -52,7 +53,8 @@ final class SubscriptionManager: ObservableObject {
         // 백그라운드 갱신·구매 복원 등으로 들어오는 트랜잭션을 계속 감시.
         updatesTask = listenForTransactions()
         Task {
-            await loadProducts()
+            // 콜드 런치 직후 네트워크가 덜 올라와 상품이 비어 오는 경우가 있어 몇 번 재시도한다.
+            await loadProducts(retryCount: 3)
             await refreshSubscriptionStatus()
             isLoading = false
         }
@@ -63,30 +65,40 @@ final class SubscriptionManager: ObservableObject {
     }
 
     /// 판매 상품 정보를 App Store에서 로드.
-    func loadProducts() async {
-        do {
-            let products = try await Product.products(for: [Self.monthlyProductID])
-            monthlyProduct = products.first
-            // 무료 체험을 이미 소진했는지 확인(같은 구독 그룹 기준).
-            if let sub = monthlyProduct?.subscription {
-                isEligibleForTrial = await sub.isEligibleForIntroOffer
+    /// 빈 결과(ASC 전파 지연 등)나 일시 오류면 잠깐 쉬고 `retryCount`만큼 더 시도한다.
+    /// - Returns: 상품을 실제로 받았으면 true.
+    @discardableResult
+    func loadProducts(retryCount: Int = 0) async -> Bool {
+        let attempts = max(0, retryCount)
+        for attempt in 0...attempts {
+            do {
+                let products = try await Product.products(for: [Self.monthlyProductID])
+                if let product = products.first {
+                    monthlyProduct = product
+                    // 무료 체험을 이미 소진했는지 확인(같은 구독 그룹 기준).
+                    if let sub = product.subscription {
+                        updateTrialEligibility(storeKitEligible: await sub.isEligibleForIntroOffer)
+                    } else {
+                        updateTrialEligibility(storeKitEligible: false)
+                    }
+                    return true
+                }
+                // 상품이 비어 돌아옴 — 남은 시도가 있으면 잠깐 뒤 다시.
+            } catch {
+                // 네트워크 등 일시 오류 — 남은 시도가 있으면 다시.
             }
-        } catch {
-            monthlyProduct = nil
+            if attempt < attempts {
+                try? await Task.sleep(nanoseconds: 1_500_000_000) // 1.5초
+            }
         }
+        monthlyProduct = nil
+        updateTrialEligibility(storeKitEligible: false)
+        return false
     }
 
     /// 현재 유효한 구독권이 있는지 확인. currentEntitlements는
     /// 만료/환불되지 않은 트랜잭션만 내보내므로, 우리 상품이 있으면 구독 중.
     func refreshSubscriptionStatus() async {
-        #if DEBUG
-        // 개발용 강제 미구독 토글. true면 실제 트랜잭션과 무관하게 항상 미구독으로 본다.
-        // 릴리즈 빌드에선 컴파일되지 않는다.
-        if Self.forceUnsubscribed {
-            isSubscribed = false
-            return
-        }
-        #endif
         var active = false
         for await result in Transaction.currentEntitlements {
             guard case .verified(let transaction) = result else { continue }
@@ -98,20 +110,20 @@ final class SubscriptionManager: ObservableObject {
         isSubscribed = active
     }
 
-    #if DEBUG
-    /// 개발 중 페이월·미구독 화면을 확인하기 위한 강제 미구독 스위치.
-    /// true로 두면 구매/복원이 있어도 항상 미구독으로 동작한다. (DEBUG 전용)
-    static let forceUnsubscribed = true
-    #endif
 
     /// 월 구독 구매.
     func purchase() async {
-        guard let product = monthlyProduct else {
-            errorMessage = "상품 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요."
-            return
-        }
         purchaseInProgress = true
         defer { purchaseInProgress = false }
+
+        // 상품이 아직 로드되지 않았으면(일시 오류 등) 한 번 더 받아본 뒤 진행한다.
+        if monthlyProduct == nil {
+            await loadProducts(retryCount: 1)
+        }
+        guard let product = monthlyProduct else {
+            errorMessage = "상품 정보를 불러오지 못했어요. 네트워크를 확인하고 잠시 후 다시 시도해주세요."
+            return
+        }
 
         do {
             let result = try await product.purchase()
@@ -159,5 +171,10 @@ final class SubscriptionManager: ObservableObject {
                 await self?.refreshSubscriptionStatus()
             }
         }
+    }
+
+    private func updateTrialEligibility(storeKitEligible: Bool) {
+        storeKitTrialEligibility = storeKitEligible
+        isEligibleForTrial = storeKitEligible
     }
 }

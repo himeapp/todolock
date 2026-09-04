@@ -17,17 +17,18 @@ struct SettingsSheet: View {
         NavigationStack {
             List {
                 Section {
-                    WeeklyStatsCard(sessions: allSessions)
+                    PatienceTimeCard(sessions: allSessions)
                         .listRowInsets(EdgeInsets())
                         .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                 }
 
                 Section {
                     Toggle("점수 제거", isOn: $hideKaraokeScore)
                 } footer: {
                     Text(hideKaraokeScore
-                         ? "점수 제거 됐어요. 점프 과업을 성공해도 점수가 안나와요."
-                         : "잠금 상태를 점프할 때, 과업을 마치고 나면 100점이 표시돼요.")
+                         ? "점수 제거 됐어요. 점프 과제을 성공하거나 잠금을 완주해도 점수·축하가 안나와요."
+                         : "잠금을 완주하거나 점프 과제을 마치면 100점과 축하 화면이 표시돼요.")
                 }
 
                 Section("도움말") {
@@ -106,72 +107,133 @@ private struct DeleteProtectionGuide: View {
     }
 }
 
-/// 이번 주 통계 1줄 카드. (기존 MyView의 WeeklyStatsCard 이전)
-struct WeeklyStatsCard: View {
+/// 설정 화면 맨 위 카드. 옛날 노래방 CRT 화면처럼 남색 네온 배경 + 스캔라인 위에
+/// DSEG7 LED 숫자로 두 기록을 나눠 보여준다.
+///  ① 잠금으로 참고 견딘 누적 "시간"  ② 감시를 켜둔 누적 "날 수"
+struct PatienceTimeCard: View {
     let sessions: [Session]
 
-    private var weekStart: Date {
-        Calendar.current.date(from: Calendar.current.dateComponents([.yearForWeekOfYear, .weekOfYear], from: Date())) ?? Date()
+    // ① 모든 잠금 세션에서 실제로 잠겨 있던 시간을 누적. (진행 중 세션은 지금까지의 경과분만)
+    private var totalSeconds: TimeInterval {
+        sessions.reduce(0) { acc, s in
+            acc + max(0, min(s.endsAt, Date()).timeIntervalSince(s.createdAt))
+        }
     }
+    private var hours: Int { Int(totalSeconds / 3600) }
+    private var minutes: Int { Int((totalSeconds.truncatingRemainder(dividingBy: 3600)) / 60) }
 
-    private var weekSessions: [Session] {
-        sessions.filter { $0.createdAt >= weekStart }
-    }
-
-    private var totalLockedSeconds: TimeInterval {
-        weekSessions.reduce(0) { $0 + min($1.endsAt, Date()).timeIntervalSince($1.createdAt) }
-    }
-
-    private var totalLockedString: String {
-        let hours = Int(totalLockedSeconds / 3600)
-        let minutes = Int((totalLockedSeconds.truncatingRemainder(dividingBy: 3600)) / 60)
-        if hours > 0 { return "\(hours)시간" }
-        return "\(minutes)분"
-    }
-
-    private var passRate: Int {
-        let attempts = weekSessions.reduce(0) { $0 + $1.attemptCount }
-        let passes = weekSessions.reduce(0) { $0 + $1.passCount }
-        guard attempts > 0 else { return 0 }
-        return Int(Double(passes) / Double(attempts) * 100)
-    }
+    // ② 감시를 켜둔 누적 날 수. (시간 합산엔 넣지 않고 따로 '며칠'로 표시)
+    private var watchdogDays: Int { LockWidgetBridge.watchdogTotalDays() }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("이번 주")
-                .font(.caption.bold())
-                .opacity(0.85)
-                .textCase(.uppercase)
+            Text("지금까지 쌓은 기록")
+                .font(.myungjoLight(12))
+                .foregroundStyle(KColor.cyan.opacity(0.85))
 
-            HStack(alignment: .bottom) {
-                VStack(alignment: .leading) {
-                    Text(totalLockedString)
-                        .font(.system(size: 32, weight: .bold).monospacedDigit())
-                    Text("총 잠금 시간")
-                        .font(.footnote)
-                        .opacity(0.85)
-                }
-                Spacer()
-                VStack(alignment: .trailing) {
-                    Text("\(passRate)%")
-                        .font(.title3.bold().monospacedDigit())
-                    Text("통과율")
-                        .font(.caption)
-                        .opacity(0.85)
+            // ① 잠금 인내 시간
+            metricRow(label: "참은 시간") {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    ledNumber("\(hours)", unit: "시간")
+                    ledNumber(String(format: "%02d", minutes), unit: "분")
                 }
             }
+
+            neonDivider
+
+            // ② 감시 누적 일수 (시간엔 안 넣고 따로 '며칠')
+            metricRow(label: "감시한 날") {
+                ledNumber("\(watchdogDays)", unit: "일")
+            }
         }
-        .padding(18)
-        .foregroundStyle(.white)
-        .background(
-            LinearGradient(
-                colors: [Color.blue, Color.purple],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
+        .padding(14)
+        .background(cardBackground)
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .stroke(KColor.cyan.opacity(0.35), lineWidth: 1)
         )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.vertical, 4)
+    }
+
+    // 왼쪽 라벨 + 오른쪽 LED 값 한 줄
+    private func metricRow<Content: View>(label: String,
+                                          @ViewBuilder content: () -> Content) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(label)
+                .font(.myungjoLight(14))
+                .foregroundStyle(.white.opacity(0.75))
+            Spacer(minLength: 8)
+            content()
+        }
+    }
+
+    // LED 숫자 1칸: 꺼진 세그먼트가 비치는 룩(뒤에 흐린 "8" 고스트) + 단위
+    private func ledNumber(_ shown: String, unit: String) -> some View {
+        let ghost = String(repeating: "8", count: shown.count)
+        return HStack(alignment: .firstTextBaseline, spacing: 4) {
+            ZStack {
+                Text(ghost)
+                    .font(.seg7(26))
+                    .foregroundStyle(KColor.cyan.opacity(0.12))
+                Text(shown)
+                    .font(.seg7(26))
+                    .foregroundStyle(KColor.cyan)
+            }
+            Text(unit)
+                .font(.myungjo(13))
+                .foregroundStyle(.white.opacity(0.8))
+        }
+    }
+
+    private var neonDivider: some View {
+        Rectangle()
+            .fill(
+                LinearGradient(colors: [.clear, KColor.cyan.opacity(0.30), .clear],
+                               startPoint: .leading, endPoint: .trailing)
+            )
+            .frame(height: 1)
+    }
+
+    // 남색 네온 + 은은한 글로우 + 스캔라인 (노래방 CRT 화면). 정적으로 가볍게.
+    private var cardBackground: some View {
+        ZStack {
+            LinearGradient(
+                colors: [
+                    Color(red: 0.09, green: 0.06, blue: 0.24),
+                    Color(red: 0.14, green: 0.09, blue: 0.34),
+                    Color(red: 0.11, green: 0.07, blue: 0.28)
+                ],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+
+            GeometryReader { geo in
+                ZStack {
+                    RadialGradient(colors: [KColor.cyan.opacity(0.30), .clear],
+                                   center: .center, startRadius: 0, endRadius: 90)
+                        .frame(width: 180, height: 180)
+                        .position(x: geo.size.width * 0.15, y: geo.size.height * 0.2)
+                    RadialGradient(colors: [KColor.pink.opacity(0.25), .clear],
+                                   center: .center, startRadius: 0, endRadius: 90)
+                        .frame(width: 180, height: 180)
+                        .position(x: geo.size.width * 0.9, y: geo.size.height * 0.85)
+                }
+                .blur(radius: 28)
+            }
+
+            Canvas { c, size in
+                let spacing: CGFloat = 3
+                var y: CGFloat = 0
+                while y < size.height {
+                    c.fill(
+                        Path(CGRect(x: 0, y: y, width: size.width, height: 1.1)),
+                        with: .color(.black.opacity(0.16))
+                    )
+                    y += spacing
+                }
+            }
+            .allowsHitTesting(false)
+        }
     }
 }

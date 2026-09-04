@@ -26,20 +26,21 @@ struct WatchdogButton: View {
         Button(action: action) {
             // 같은 줄의 모드/점프 키(FuncButton·PresetButton)와 동일한 균일 볼드 고딕 18pt.
             Text("감시")
-                .font(.system(size: 18, weight: .black))
+                .font(.system(size: 16, weight: .black))
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 15)
+                .padding(.vertical, 12)
                 .background(
-                    RoundedRectangle(cornerRadius: 8).fill(
+                    RoundedRectangle(cornerRadius: 16).fill(
                         LinearGradient(colors: [Color(wd: 0x6f7bf2), Color(wd: 0x4f56d8)],
                                        startPoint: .top, endPoint: .bottom)
                     )
+                    .shadow(color: .black.opacity(0.16), radius: 2.5, y: 1.5)
                 )
-                .overlay(alignment: .top) { keycapGloss(radius: 8) }
+                .overlay(alignment: .top) { keycapGloss(radius: 16) }
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(isActive ? Color.white : .black.opacity(0.22),
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(isActive ? Color.white : .black.opacity(0.12),
                                 lineWidth: isActive ? 2 : 1)
                 )
         }

@@ -1,5 +1,6 @@
 import Foundation
 import DeviceActivity
+import FamilyControls
 
 /// 세션의 시작/종료 시점을 OS에 예약. DeviceActivityMonitor extension이 콜백 받음.
 final class ActivityScheduler {
@@ -56,5 +57,45 @@ final class ActivityScheduler {
 
     func cancelRelock(sessionId: UUID) {
         center.stopMonitoring([relockName(sessionId)])
+    }
+
+    // MARK: - 감시(watchdog) 하루 한도
+
+    /// 감시 전용 activity 이름. 익스텐션이 이 이름으로 한도 도달/일일 리셋을 구분한다.
+    static let watchdogActivityName = DeviceActivityName("watchdog")
+    /// 한도 도달 이벤트 이름.
+    static let watchdogEventName = DeviceActivityEvent.Name("watchdog.dailyLimit")
+
+    /// 고른 앱에 "하루 사용 한도"를 건다.
+    /// 매일 0:00~23:59 반복 스케줄에 사용량 임계(threshold) 이벤트를 등록 →
+    /// 한도를 넘기는 순간 익스텐션 eventDidReachThreshold가 호출돼 그 앱들을 차단한다.
+    /// (자정에 intervalDidStart가 다시 와서 차단이 풀리며 한도가 리셋된다.)
+    func scheduleWatchdog(selection: FamilyActivitySelection, limitMinutes: Int) throws {
+        let schedule = DeviceActivitySchedule(
+            intervalStart: DateComponents(hour: 0, minute: 0),
+            intervalEnd: DateComponents(hour: 23, minute: 59),
+            repeats: true
+        )
+        let event = DeviceActivityEvent(
+            applications: selection.applicationTokens,
+            categories: selection.categoryTokens,
+            webDomains: selection.webDomainTokens,
+            threshold: DateComponents(minute: limitMinutes)
+        )
+        // 한도 도달 시 익스텐션이 shield를 걸 수 있도록 감시 선택을 App Group에 공유.
+        WatchdogShareStore.shared.setSelection(selection, limitMinutes: limitMinutes)
+        // 기존 감시가 있다면 새 설정으로 덮어쓴다.
+        center.stopMonitoring([Self.watchdogActivityName])
+        try center.startMonitoring(
+            Self.watchdogActivityName,
+            during: schedule,
+            events: [Self.watchdogEventName: event]
+        )
+    }
+
+    /// 감시 해제 — 모니터링 중단 + 공유 데이터 정리.
+    func cancelWatchdog() {
+        center.stopMonitoring([Self.watchdogActivityName])
+        WatchdogShareStore.shared.clear()
     }
 }

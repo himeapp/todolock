@@ -363,9 +363,9 @@ struct KaraokeButtonStyle: ButtonStyle {
     }
 }
 
-// MARK: - 노래방 채점 점수판 (과업 성공)
+// MARK: - 노래방 채점 점수판 (과제 성공)
 
-/// 옛날 노래방처럼 과업을 마치면 "100점"이 뜨는 점수판.
+/// 옛날 노래방처럼 과제을 마치면 "100점"이 뜨는 점수판.
 struct KaraokeScore: View {
     var score: Int = 100
     /// 자체 카드(배경+테두리)를 그릴지. 투어 모니터 틀 안에 넣을 땐 꺼서 카드 중첩을 막는다.
@@ -412,7 +412,7 @@ struct KaraokeScore: View {
     }
 }
 
-// MARK: - 풀스크린 노래방 채점 화면 (과업 성공)
+// MARK: - 풀스크린 노래방 채점 화면 (과제 성공)
 
 /// 실제 노래방 채점처럼 화면 전체를 덮으며 등장하는 점수판.
 /// - 스테이지 배경 + 둘러싼 전구 아치(체이싱 점멸)
@@ -435,7 +435,10 @@ struct KaraokeScoreScreen: View {
 
     private var verdict: (line1: String, line2: String, color: Color) {
         switch score {
-        case 100:        return ("★  PERFECT  ★", "간주를 얻었어요!", KColor.yellow)
+        case 100:
+            // 간주점프 성공 vs 잠금 완창 — 결과 문구를 다르게.
+            let line2 = hasUnlock ? "간주를 얻었어요!" : "끝까지 버텨냈어요!"
+            return ("★  PERFECT  ★", line2, KColor.yellow)
         case 90...99:    return ("★  EXCELLENT  ★", "이 정도면 가수님이세요~", KColor.cyan)
         case 70...89:    return ("♪  GOOD  ♪", "노래방 사장님도 인정!", KColor.green)
         default:         return ("이 점수 어쩌면 좋지?", "진짜 모르게쒸요~", KColor.pink)
@@ -506,6 +509,14 @@ struct KaraokeScoreScreen: View {
                 .stroke(.white.opacity(0.18), lineWidth: 1.5)
         )
         .shadow(color: .black.opacity(0.5), radius: 28, y: 12)
+        .overlay(alignment: .topTrailing) {
+            Button { onContinue() } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 28))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(10)
+            }
+        }
         .padding(.horizontal, 18)
         .padding(.vertical, 64)              // 위아래로 어두운 여백을 남겨 카드처럼 떠 보이게
     }
@@ -972,7 +983,16 @@ struct SeededRNG: RandomNumberGenerator {
 struct KaraokeIntroView: View {
     let song: KaraokeSong
     let number: String
+    /// 화면에 크게 띄울 곡 제목. 사용자가 정한 곡 이름(세션 title)을 우선 쓰고,
+    /// 비어 있으면 배정된 발라드 제목(song.title)으로 대체한다.
+    var displayTitle: String? = nil
     var onFinish: () -> Void
+
+    /// 실제로 그릴 제목 — 사용자 곡명 우선, 없으면 배정곡 제목.
+    private var titleText: String {
+        if let t = displayTitle?.trimmingCharacters(in: .whitespaces), !t.isEmpty { return t }
+        return song.title
+    }
 
     @State private var appear = false
     /// 가사처럼 떠오르는 시작 카운트(3·2·1). nil이면 아직/이미 끝.
@@ -1004,7 +1024,7 @@ struct KaraokeIntroView: View {
                         .foregroundStyle(KColor.cyan)
                         .shadow(color: KColor.cyan.opacity(0.7), radius: 6)
                 }
-                OutlinedText(text: song.title, size: 40, fill: KColor.yellow, strokeWidth: 6)
+                OutlinedText(text: titleText, size: 40, fill: KColor.yellow, strokeWidth: 6)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .padding(.horizontal, 28)
@@ -1276,5 +1296,34 @@ enum KaraokeIntroTracker {
         // 최근 50개만 유지(무한 증가 방지).
         if shown.count > 50 { shown.removeFirst(shown.count - 50) }
         UserDefaults.standard.set(shown, forKey: key)
+    }
+}
+
+// MARK: - 완료 축하 추적기 (잠금 완주 → 앱 진입 시 점수 축하)
+
+/// 잠금을 끝까지 버틴 세션을 표시해 두었다가, 앱에 들어왔을 때 콘페티+100점을 한 번
+/// 터뜨린다. 시작할 때 "대기"로 등록하고(=완료를 기다림), 축하를 보여주면 비운다.
+/// (기능 도입 전의 옛 세션이 한꺼번에 축하되지 않도록 시작 시점에만 등록한다.)
+enum KaraokeCelebrationTracker {
+    private static let key = "karaokePendingCelebrationSessionIDs"
+
+    /// 세션 시작 시 호출 — 완료되면 축하할 대상으로 등록.
+    static func markStarted(_ id: UUID) {
+        var ids = UserDefaults.standard.stringArray(forKey: key) ?? []
+        guard !ids.contains(id.uuidString) else { return }
+        ids.append(id.uuidString)
+        if ids.count > 50 { ids.removeFirst(ids.count - 50) }
+        UserDefaults.standard.set(ids, forKey: key)
+    }
+
+    static func isPending(_ id: UUID) -> Bool {
+        (UserDefaults.standard.stringArray(forKey: key) ?? []).contains(id.uuidString)
+    }
+
+    /// 축하를 보여줬거나(또는 점수 제거로 건너뛸 때) 대상에서 제거.
+    static func consume(_ id: UUID) {
+        var ids = UserDefaults.standard.stringArray(forKey: key) ?? []
+        ids.removeAll { $0 == id.uuidString }
+        UserDefaults.standard.set(ids, forKey: key)
     }
 }

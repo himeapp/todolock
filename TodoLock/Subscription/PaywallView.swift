@@ -6,14 +6,12 @@ import StoreKit
 struct PaywallView: View {
     @EnvironmentObject var subscription: SubscriptionManager
     @State private var legal: LegalKind?
-    /// X 버튼을 누르면 뜨는 "부담 갖지 마세요" 안심 팝업 표시 여부.
-    @State private var showReassure = false
-    /// 안심 팝업을 닫을 때마다 띄우는 앱 소개 투어 표시 여부.
+    /// 최초 실행 시 딱 한 번 자동으로 띄우는 앱 소개 투어 표시 여부.
     @State private var showTour = false
-    /// 최초 실행 시 투어를 자동으로 딱 한 번 띄웠는지. (X→닫기 수동 경로는 이 값과 무관하게 매번 동작)
+    /// 최초 실행 시 투어를 자동으로 딱 한 번 띄웠는지.
     @AppStorage("hasSeenTour") private var hasSeenTour = false
 
-    /// 수록곡 목록에서 노래방 커서처럼 강조되는 행 인덱스. 일정 간격으로 번갈아 움직인다.
+    /// 수록 기능 목록에서 노래방 커서처럼 강조되는 행 인덱스. 일정 간격으로 번갈아 움직인다.
     @State private var selectedSong = 0
     /// 강조 행을 번갈아 옮기는 타이머.
     private let songTimer = Timer.publish(every: 2.2, on: .main, in: .common).autoconnect()
@@ -94,47 +92,8 @@ struct PaywallView: View {
                     .padding(.bottom, 22)
             }
 
-            // 우상단 X — 막아서는 느낌을 덜기 위해, 닫는 대신 "부담 갖지 마세요" 안내를 띄운다.
-            VStack {
-                HStack {
-                    Spacer()
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                            showReassure = true
-                        }
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 15, weight: .bold))
-                            .foregroundStyle(.white.opacity(0.9))
-                            .frame(width: 32, height: 32)
-                            .background(Circle().fill(.black.opacity(0.35)))
-                            .overlay(Circle().stroke(.white.opacity(0.25), lineWidth: 1))
-                    }
-                    .buttonStyle(.plain)
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-
-            if showReassure {
-                ReassurePopup(
-                    ctaTitle: ctaTitle,
-                    onStartTrial: {
-                        withAnimation(.easeOut(duration: 0.2)) { showReassure = false }
-                        Task { await subscription.purchase() }
-                    },
-                    onClose: {
-                        withAnimation(.easeOut(duration: 0.25)) { showReassure = false }
-                        // 팝업을 닫을 때마다 앱 소개 투어를 띄운다.
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.28) {
-                            showTour = true
-                        }
-                    }
-                )
-                .transition(.scale(scale: 0.92).combined(with: .opacity))
-                .zIndex(2)
-            }
+            // 구독이 없으면 앱을 쓸 수 없는 하드 페이월이라 닫기(X) 버튼을 두지 않는다.
+            // (거절 직후 재유도하는 패턴은 App Store 가이드라인 5.6 위반이므로 제거함.)
         }
         .sheet(item: $legal) { kind in
             NavigationStack {
@@ -159,14 +118,14 @@ struct PaywallView: View {
         } message: {
             Text(subscription.errorMessage ?? "")
         }
-        // 안심 팝업을 닫은 직후, 그리고 최초 실행 시 자동으로 뜨는 앱 소개 투어.
+        // 최초 실행 시 딱 한 번 자동으로 뜨는 앱 소개 투어(정보성 안내).
         .fullScreenCover(isPresented: $showTour) {
             ScreenTourView {
                 showTour = false
-                hasSeenTour = true   // 어떤 경로로 봤든 본 뒤엔 자동 노출을 끈다.
+                hasSeenTour = true   // 한 번 본 뒤엔 자동 노출을 끈다.
             }
         }
-        // 최초 실행 1회 자동 노출. (이후엔 X→닫기 수동 경로로만 다시 뜬다.)
+        // 최초 실행 1회만 자동 노출.
         .onAppear {
             if !hasSeenTour {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
@@ -187,12 +146,12 @@ struct PaywallView: View {
     /// 강조 행은 앱의 노래방 파랑(KColor.highlight)으로. 강조는 두 행을 번갈아 옮겨 다닌다.
     private var benefitSongList: some View {
         VStack(spacing: 0) {
-            // 헤더 — "🔍 수록곡"
+            // 헤더 — "🔍 수록 기능"
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 12, weight: .bold))
                     .foregroundStyle(KColor.cyan)
-                Text("수록곡")
+                Text("수록 기능")
                     .font(.system(size: 13, weight: .bold, design: .monospaced))
                     .foregroundStyle(.white)
                 Spacer(minLength: 0)
@@ -285,6 +244,7 @@ struct PaywallView: View {
                 .font(.system(size: 11))
                 .foregroundStyle(.white.opacity(0.55))
                 .multilineTextAlignment(.center)
+
 
             HStack(spacing: 10) {
                 Button("이용약관") { legal = .terms }
@@ -401,165 +361,6 @@ private struct FloatingNotes: View {
                 }
             }
         }
-    }
-}
-
-// MARK: - 부담 갖지 마세요 팝업 (노래방 리모컨 룩)
-
-/// X를 누르면 뜨는 안심 팝업. 막아서는 대신 "부담 없이 체험해보세요"라고 토닥인다.
-/// 시작 확인/모드 이름 변경 팝업과 같은 노래방 디자인 — 파란 타이틀바·CRT 다크 본문·하단 액션바.
-private struct ReassurePopup: View {
-    let ctaTitle: String
-    let onStartTrial: () -> Void
-    let onClose: () -> Void
-
-    /// 안심 메시지 세 줄 — 아이콘과 함께 곡목록처럼 보여준다.
-    private let lines: [(icon: String, text: String)] = [
-        ("music.note", "부담없이 체험해보세요!"),
-        ("hand.tap.fill", "바로 취소 눌러두어도 돼요."),
-        ("checkmark.shield.fill", "억지로 결제되지 않아요.")
-    ]
-
-    var body: some View {
-        ZStack {
-            Color.black.opacity(0.55)
-                .ignoresSafeArea()
-                .onTapGesture { onClose() }
-
-            VStack(spacing: 0) {
-                titleBar
-                bodyArea
-                bottomBar
-            }
-            .frame(maxWidth: 360)
-            .background(
-                RoundedRectangle(cornerRadius: 14).fill(
-                    LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
-                                   startPoint: .top, endPoint: .bottom)
-                )
-            )
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: 0x2d4f86), lineWidth: 1.5))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: .black.opacity(0.5), radius: 24, y: 10)
-            .padding(.horizontal, 26)
-        }
-    }
-
-    // MARK: 파란 타이틀바
-
-    private var titleBar: some View {
-        HStack(spacing: 10) {
-            waveCircle
-            OutlinedText(text: "잠깐, 가기 전에", size: 19,
-                         fill: Color(hex: 0xeaff6a), stroke: KColor.outline, strokeWidth: 3.5)
-            Spacer(minLength: 6)
-            Button { onClose() } label: {
-                Image(systemName: "xmark")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white.opacity(0.9))
-                    .frame(width: 26, height: 26)
-                    .background(Circle().fill(.black.opacity(0.25)))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 9)
-        .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(colors: [Color(hex: 0x3c7bd6), Color(hex: 0x1e4f9e)],
-                           startPoint: .top, endPoint: .bottom)
-        )
-        .overlay(alignment: .top) {
-            Rectangle().fill(.white.opacity(0.25)).frame(height: 1.5)
-        }
-    }
-
-    private var waveCircle: some View {
-        ZStack {
-            Circle().fill(
-                RadialGradient(colors: [Color(hex: 0xffe08a), Color(hex: 0xe69a28)],
-                               center: .topLeading, startRadius: 1, endRadius: 26)
-            )
-            Circle().stroke(Color(hex: 0x8a571a), lineWidth: 1.5)
-            Image(systemName: "hand.wave.fill")
-                .font(.system(size: 14, weight: .black))
-                .foregroundStyle(Color(hex: 0x5a3a08))
-        }
-        .frame(width: 30, height: 30)
-        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
-    }
-
-    // MARK: 본문 (안심 메시지 목록)
-
-    private var bodyArea: some View {
-        VStack(spacing: 0) {
-            ForEach(Array(lines.enumerated()), id: \.offset) { idx, line in
-                HStack(spacing: 12) {
-                    Image(systemName: line.icon)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundStyle(KColor.cyan)
-                        .frame(width: 24)
-                    Text(line.text)
-                        .font(.myungjo(17))
-                        .foregroundStyle(.white)
-                    Spacer(minLength: 0)
-                }
-                .padding(.horizontal, 14)
-                .padding(.vertical, 13)
-                .frame(maxWidth: .infinity)
-                .overlay(alignment: .bottom) {
-                    if idx < lines.count - 1 {
-                        Rectangle().fill(.white.opacity(0.06)).frame(height: 1)
-                    }
-                }
-            }
-        }
-        .background(Color.black.opacity(0.18))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.08), lineWidth: 1))
-        .padding(.horizontal, 14)
-        .padding(.vertical, 14)
-    }
-
-    // MARK: 하단 액션바
-
-    private var bottomBar: some View {
-        HStack(spacing: 10) {
-            Spacer()
-            actionButton("닫기", color: Color(hex: 0x4a5568)) { onClose() }
-            actionButton(ctaTitle, color: KColor.green) { onStartTrial() }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color.black.opacity(0.28))
-        .overlay(alignment: .top) {
-            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
-        }
-    }
-
-    private func actionButton(_ title: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.myungjo(16))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 9)
-                .background(RoundedRectangle(cornerRadius: 8).fill(color))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.25), lineWidth: 1))
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private extension Color {
-    init(hex: UInt32) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xff) / 255,
-            green: Double((hex >> 8) & 0xff) / 255,
-            blue: Double(hex & 0xff) / 255,
-            opacity: 1
-        )
     }
 }
 

@@ -16,7 +16,7 @@ struct ScreenTourView: View {
 
     var body: some View {
         ZStack {
-            // 배경은 점프 과업 화면(앱 아이콘)과 같은 파란 네온 룩.
+            // 배경은 점프 과제 화면(앱 아이콘)과 같은 파란 네온 룩.
             NeonBlurBackground()
             LinearGradient(
                 colors: [.black.opacity(0.35), .black.opacity(0.15), .black.opacity(0.45)],
@@ -206,7 +206,7 @@ private struct TourSlide {
         ),
         TourSlide(
             title: "가끔 꼭 필요할 때",
-            subtitle: "간주 점프를 눌러보세요.\n미리 정해놓은 과업 리스트가 떠요.",
+            subtitle: "간주 점프를 눌러보세요.\n미리 정해놓은 과제 리스트가 떠요.",
             view: AnyView(JumpPoster())
         ),
         TourSlide(

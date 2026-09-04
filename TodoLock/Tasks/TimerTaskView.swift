@@ -53,7 +53,7 @@ struct TimerTaskView: View {
             if done {
                 OutlinedText(text: "완료! ✓", size: 22, fill: KColor.cyan)
             } else if !running {
-                Button("과업 도전 ▶") { start() }
+                Button("과제 도전 ▶") { start() }
                     .buttonStyle(KaraokeButtonStyle(color: KColor.yellow))
                     .fixedSize()
             } else {

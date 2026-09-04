@@ -23,3 +23,6 @@ Pods/
 
 # macOS
 .DS_Store
+
+# App Store 제출용 스크린샷 원본 (용량 큼)
+screenshot/

@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// 과업 종류 — 단일 과업은 둘 중 하나다.
+/// 과제 종류 — 단일 과제은 둘 중 하나다.
 /// - timer: 타이머가 끝날 때까지 버티기.
 /// - photo: 사진 1장 촬영 → 온디바이스 Vision 검수로 통과.
 enum TaskKind: String, Codable, CaseIterable, Identifiable {
@@ -63,7 +63,7 @@ enum VerifyCategory: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// 사용자가 등록해 두는 "자주 쓰는 과업" 한 건. 전역 풀(pool)에 저장되고,
+/// 사용자가 등록해 두는 "자주 쓰는 과제" 한 건. 전역 풀(pool)에 저장되고,
 /// 잠긴 앱을 열어 점프할 때 이 중 하나를 골라 즉시 수행한다.
 @Model
 final class TaskItem {
@@ -112,7 +112,7 @@ final class TaskItem {
         }
     }
 
-    /// 첫 실행 시 비어 있지 않도록 기본 과업 풀.
+    /// 첫 실행 시 비어 있지 않도록 기본 과제 풀.
     static func seeds() -> [TaskItem] {
         [
             TaskItem(name: "30분 독서", kind: .timer, timerSeconds: 1800),

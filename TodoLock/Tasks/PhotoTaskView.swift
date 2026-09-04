@@ -32,7 +32,7 @@ enum PhotoVerifier {
     }
 }
 
-/// 사진찍기 과업 수행 카드. 촬영 → 온디바이스 검수 → 통과/재촬영.
+/// 사진찍기 과제 수행 카드. 촬영 → 온디바이스 검수 → 통과/재촬영.
 /// 옛 캠코더 뷰파인더 룩: 코너 브래킷 · REC 표시 · 검수 스캔라인.
 struct PhotoTaskView: View {
     let category: VerifyCategory
@@ -229,7 +229,7 @@ struct PhotoTaskView: View {
         case .passed:
             OutlinedText(text: "인증 완료! ✓", size: 20, fill: KColor.green)
         case .retry:
-            Text("과업과 맞지 않아요. 다시 찍어주세요.")
+            Text("과제과 맞지 않아요. 다시 찍어주세요.")
                 .font(.myungjoLight(14)).foregroundStyle(KColor.pink)
         }
     }

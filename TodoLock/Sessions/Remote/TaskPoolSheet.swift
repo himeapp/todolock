@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 import FamilyControls
 
-/// 리모컨 초록 "과업/점프" 버튼이 여는 자주 쓰는 과업 풀 화면. (노래방 네온 룩)
-/// 단일 과업 목록(타이머/사진). 잠긴 앱을 열면 이 중 하나를 즉시 수행한다.
+/// 리모컨 초록 "과제/점프" 버튼이 여는 자주 쓰는 과제 풀 화면. (노래방 네온 룩)
+/// 단일 과제 목록(타이머/사진). 잠긴 앱을 열면 이 중 하나를 즉시 수행한다.
 struct TaskPoolSheet: View {
     /// 글리치 프레젠테이션에서 닫기를 가로채기 위한 콜백. 없으면 기본 dismiss 사용.
     var onClose: (() -> Void)? = nil
@@ -23,12 +23,12 @@ struct TaskPoolSheet: View {
             .onAppear(perform: seedIfNeeded)
             .sheet(isPresented: $creatingNew) { TaskEditorView() }
             .sheet(item: $editingTask) { TaskEditorView(task: $0) }
-            // 과업을 끝내면 실행 화면뿐 아니라 이 과업 목록까지 함께 닫아 가사 화면으로 돌아간다.
+            // 과제을 끝내면 실행 화면뿐 아니라 이 과제 목록까지 함께 닫아 가사 화면으로 돌아간다.
             .sheet(item: $runningTask) { TaskRunView(task: $0, onFinished: closeSheet) }
     }
 
     /// asCard면 둥근 카드로, 아니면 화면을 꽉 채운다.
-    /// 카드는 과업 실행 화면(시트)과 같은 크기로 보이도록 상단 여백을 시트 수준으로만 두고,
+    /// 카드는 과제 실행 화면(시트)과 같은 크기로 보이도록 상단 여백을 시트 수준으로만 두고,
     /// 그 아래로 잠금 화면 타이틀까지 덮는다. (작은 여백엔 잠금 화면이 살짝 비칠 뿐)
     @ViewBuilder private var presentationBody: some View {
         if asCard {
@@ -56,7 +56,7 @@ struct TaskPoolSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         if tasks.isEmpty {
-                            OutlinedText(text: "등록된 과업이 없어요.\n아래에서 만들어보세요.",
+                            OutlinedText(text: "등록된 과제이 없어요.\n아래에서 만들어보세요.",
                                          size: 18, alignment: .leading)
                         } else {
                             ForEach(tasks) { task in
@@ -80,17 +80,17 @@ struct TaskPoolSheet: View {
                     .padding(.bottom, 16)
                 }
 
-                // 보조 동작: 과업이 없을 때만 초록 강조(첫 사용자 안내), 평소엔 옅은 고스트
+                // 보조 동작: 과제이 없을 때만 초록 강조(첫 사용자 안내), 평소엔 옅은 고스트
                 // 버튼으로 둬서 재생(▶)이 주 동작임을 흐리지 않는다.
                 Group {
                     if tasks.isEmpty {
                         Button { creatingNew = true } label: {
-                            Label("새 과업 만들기", systemImage: "plus.circle.fill")
+                            Label("새 과제 만들기", systemImage: "plus.circle.fill")
                         }
                         .buttonStyle(KaraokeButtonStyle(color: KColor.green))
                     } else {
                         Button { creatingNew = true } label: {
-                            Label("새 과업 만들기", systemImage: "plus.circle")
+                            Label("새 과제 만들기", systemImage: "plus.circle")
                                 .font(.myungjo(15))
                                 .foregroundStyle(.white.opacity(0.6))
                                 .frame(maxWidth: .infinity)
@@ -111,9 +111,9 @@ struct TaskPoolSheet: View {
     private var header: some View {
         HStack {
             NowPlayingBox(
-                tag: "과업",
+                tag: "과제",
                 tagColor: KColor.green,
-                title: "점프 과업 목록",
+                title: "점프 과제 목록",
                 subtitle: "하나를 끝내면 15분 점프!"
             )
             Spacer()
@@ -139,7 +139,7 @@ struct TaskPoolSheet: View {
             for t in TaskItem.seeds() { modelContext.insert(t) }
         }
         #if targetEnvironment(simulator)
-        // 시뮬레이터에서 100점 흐름을 빨리 확인할 수 있도록 3초짜리 테스트 과업을 보장.
+        // 시뮬레이터에서 100점 흐름을 빨리 확인할 수 있도록 3초짜리 테스트 과제을 보장.
         if !tasks.contains(where: { $0.name == "⏱ 테스트 3초" }) {
             modelContext.insert(TaskItem(name: "⏱ 테스트 3초", kind: .timer, timerSeconds: 3))
         }
@@ -148,7 +148,7 @@ struct TaskPoolSheet: View {
     }
 }
 
-/// 과업 풀 카드 한 줄. 탭하면 바로 실행, 우측 연필로 수정.
+/// 과제 풀 카드 한 줄. 탭하면 바로 실행, 우측 연필로 수정.
 private struct TaskPoolCard: View {
     let task: TaskItem
     let onRun: () -> Void
@@ -200,12 +200,12 @@ private struct TaskPoolCard: View {
     }
 }
 
-/// 풀에서 과업을 탭하면 뜨는 실행 화면. 수행 → 100점 점수판(15분 사용 안내) → 가사 화면 복귀.
+/// 풀에서 과제을 탭하면 뜨는 실행 화면. 수행 → 100점 점수판(15분 사용 안내) → 가사 화면 복귀.
 private struct TaskRunView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     let task: TaskItem
-    /// 과업을 끝내고 빠져나갈 때 호출. 이 실행 화면뿐 아니라 그 아래 곡목록(풀)까지 함께 닫는다.
+    /// 과제을 끝내고 빠져나갈 때 호출. 이 실행 화면뿐 아니라 그 아래 곡목록(풀)까지 함께 닫는다.
     var onFinished: () -> Void
 
     @Query(sort: \Session.createdAt, order: .reverse) private var sessions: [Session]
@@ -230,7 +230,7 @@ private struct TaskRunView: View {
 
                 ScrollView {
                     VStack(spacing: 22) {
-                        Text("♪  이 과업을 해요  ♪")
+                        Text("♪  이 과제을 해요  ♪")
                             .font(.led(11))
                             .foregroundStyle(KColor.yellow)
                             .shadow(color: KColor.yellow.opacity(0.5), radius: 5)
@@ -250,7 +250,7 @@ private struct TaskRunView: View {
                 }
             }
 
-            // 과업 성공 → 100점 + "딱 15분만 사용할 수 있어요"를 카드로. 바깥을 탭하면 닫혀 가사 화면으로.
+            // 과제 성공 → 100점 + "딱 15분만 사용할 수 있어요"를 카드로. 바깥을 탭하면 닫혀 가사 화면으로.
             if let minutes = unlockedMinutes, let selection = unlockedSelection {
                 KaraokeScoreScreen(unlockMinutes: minutes, unlockSelection: selection) {
                     onFinished()
@@ -264,7 +264,7 @@ private struct TaskRunView: View {
             Button("계속하기", role: .cancel) {}
             Button("포기하기", role: .destructive) { dismiss() }
         } message: {
-            Text("진행 중인 과업이 사라져요. 간주 점프 15분을 받을 수 없어요.")
+            Text("진행 중인 과제이 사라져요. 간주 점프 15분을 받을 수 없어요.")
         }
     }
 
@@ -336,7 +336,7 @@ private struct TaskRunView: View {
     }
 }
 
-/// 과업 생성/편집. (노래방 네온 룩) 타입(타이머/사진)에 따라 입력이 달라진다.
+/// 과제 생성/편집. (노래방 네온 룩) 타입(타이머/사진)에 따라 입력이 달라진다.
 struct TaskEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -474,7 +474,7 @@ struct TaskEditorView: View {
 
                     if existing != nil {
                         Button(role: .destructive) { deleteTask() } label: {
-                            Label("이 과업 삭제", systemImage: "trash")
+                            Label("이 과제 삭제", systemImage: "trash")
                                 .font(.myungjo(15))
                                 .foregroundStyle(KColor.pink)
                                 .frame(maxWidth: .infinity)
@@ -491,7 +491,7 @@ struct TaskEditorView: View {
 
     private var header: some View {
         HStack {
-            OutlinedText(text: existing == nil ? "새 과업" : "과업 편집", size: 24, alignment: .leading)
+            OutlinedText(text: existing == nil ? "새 과제" : "과제 편집", size: 24, alignment: .leading)
             Spacer()
             Button { dismiss() } label: {
                 Image(systemName: "xmark")

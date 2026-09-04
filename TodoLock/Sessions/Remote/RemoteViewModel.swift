@@ -96,7 +96,7 @@ final class RemoteViewModel: ObservableObject {
         !selection.webDomainTokens.isEmpty
     }
 
-    /// 과업은 선택사항. 시간이 유효하고(분 0~59) 최소 15분 이상이며, 잠글 대상이 있으면 시작 가능.
+    /// 과제은 선택사항. 시간이 유효하고(분 0~59) 최소 15분 이상이며, 잠글 대상이 있으면 시작 가능.
     var canStart: Bool {
         #if targetEnvironment(simulator)
         // 시뮬레이터는 앱 선택(FamilyActivityPicker)이 동작하지 않으므로

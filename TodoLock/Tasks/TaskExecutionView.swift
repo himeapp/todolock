@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 import FamilyControls
 
-/// Shield → 딥링크로 잠긴 앱을 열었을 때 표시되는 과업 수행 화면. (노래방 "점프")
-/// 개념: 전역 과업 풀에서 하나를 골라 즉시 수행하면 곡을 "점프"하고 보너스 시간을 받는다.
+/// Shield → 딥링크로 잠긴 앱을 열었을 때 표시되는 과제 수행 화면. (노래방 "점프")
+/// 개념: 전역 과제 풀에서 하나를 골라 즉시 수행하면 곡을 "점프"하고 보너스 시간을 받는다.
 /// 타이머형은 끝까지 버티기, 사진형은 촬영→온디바이스 검수. 중간에 나가면(이탈) 잠금 유지.
 struct TaskExecutionView: View {
     @Environment(\.modelContext) private var modelContext
@@ -104,7 +104,7 @@ struct TaskExecutionView: View {
             Spacer()
             Button {
                 if selectedTaskId != nil {
-                    selectedTaskId = nil   // 과업 선택 화면으로 뒤로
+                    selectedTaskId = nil   // 과제 선택 화면으로 뒤로
                     taskDone = false
                 } else {
                     dismiss()
@@ -122,18 +122,18 @@ struct TaskExecutionView: View {
         .padding(.top, 12)
     }
 
-    // MARK: - 과업 선택 (전역 풀)
+    // MARK: - 과제 선택 (전역 풀)
 
     private var picker: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("♪  곡을 점프하려면 과업 하나를 해요  ♪")
+                Text("♪  곡을 점프하려면 과제 하나를 해요  ♪")
                     .font(.led(11))
                     .foregroundStyle(KColor.yellow)
                     .shadow(color: KColor.yellow.opacity(0.5), radius: 5)
 
                 if tasks.isEmpty {
-                    OutlinedText(text: "등록된 과업이 없어요.\n리모컨에서 과업을 추가해주세요.",
+                    OutlinedText(text: "등록된 과제이 없어요.\n리모컨에서 과제을 추가해주세요.",
                                  size: 18, alignment: .leading)
                 } else {
                     ForEach(tasks) { task in
@@ -178,7 +178,7 @@ struct TaskExecutionView: View {
         )
     }
 
-    // MARK: - 과업 수행
+    // MARK: - 과제 수행
 
     @ViewBuilder
     private func perform(session: Session, task: TaskItem) -> some View {
@@ -214,7 +214,7 @@ struct TaskExecutionView: View {
             Button {
                 complete(session: session, task: task)
             } label: {
-                Text(taskDone ? "\(session.passDurationMinutes)분 점프 ▶" : "과업을 마치면 점프돼요")
+                Text(taskDone ? "\(session.passDurationMinutes)분 점프 ▶" : "과제을 마치면 점프돼요")
             }
             .buttonStyle(KaraokeButtonStyle(color: KColor.green, enabled: taskDone))
             .disabled(!taskDone)

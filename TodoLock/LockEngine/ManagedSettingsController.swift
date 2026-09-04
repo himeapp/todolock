@@ -29,4 +29,17 @@ final class ManagedSettingsController {
         s.shield.applicationCategories = nil
         s.shield.webDomainCategories = nil
     }
+
+    // MARK: - 감시(watchdog) 전용 스토어
+
+    /// 감시는 세션과 별개라 고정 이름의 스토어를 쓴다. (익스텐션도 같은 이름으로 차단/해제)
+    static let watchdogStoreName = ManagedSettingsStore.Name(rawValue: "watchdog")
+
+    /// 감시 해제 시 걸려 있던 차단을 즉시 푼다.
+    func clearWatchdogShield() {
+        let s = ManagedSettingsStore(named: Self.watchdogStoreName)
+        s.shield.applications = nil
+        s.shield.applicationCategories = nil
+        s.shield.webDomainCategories = nil
+    }
 }

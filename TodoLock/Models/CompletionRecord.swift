@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-/// 과업 1회 통과 시 기록되는 가벼운 로그. 투두 탭의 "최근 완료" 리스트 소스.
+/// 과제 1회 통과 시 기록되는 가벼운 로그. 투두 탭의 "최근 완료" 리스트 소스.
 @Model
 final class CompletionRecord {
     @Attribute(.unique) var id: UUID

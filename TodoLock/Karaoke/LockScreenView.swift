@@ -10,9 +10,11 @@ struct LockScreenView: View {
     @State private var showIntro: Bool
     @State private var showingJump = false
     @State private var showingJumpBlocked = false
+    /// 슬림 리모컨의 "잠근 앱" 키 → 잠근 앱 목록(추가 전용) 카드.
+    @State private var showingLockedApps = false
 
     @ObservedObject private var ticker = Ticker.shared
-    /// Shield "과업 수행하기" → 푸시 → 탭으로 들어온 딥링크. 잠금 화면이 직접 점프를 연다.
+    /// Shield "과제 수행하기" → 푸시 → 탭으로 들어온 딥링크. 잠금 화면이 직접 점프를 연다.
     @ObservedObject private var deepLink = DeepLinkHandler.shared
     /// 이 세션에 걸린 임시 해제들. (만료되면 컨트롤러가 삭제 → 자동 갱신)
     @Query private var unlocks: [TempUnlock]
@@ -38,7 +40,11 @@ struct LockScreenView: View {
         ActiveLockView(session: session)
             .overlay(alignment: .bottom) {
                 if !showIntro {
-                    LockRemoteBar(session: session, onJump: handleJumpTap)
+                    LockRemoteBar(
+                        session: session,
+                        onManage: { showingLockedApps = true },
+                        onJump: handleJumpTap
+                    )
                 }
             }
             .overlay {
@@ -46,6 +52,7 @@ struct LockScreenView: View {
                     KaraokeIntroView(
                         song: karaokeSong(for: session),
                         number: karaokeNumber(session.id),
+                        displayTitle: session.title,
                         onFinish: finishIntro
                     )
                     .transition(.opacity)
@@ -56,11 +63,15 @@ struct LockScreenView: View {
             .glitchReveal(isPresented: $showingJump, dimmed: false) { close in
                 TaskPoolSheet(onClose: close, asCard: true)
             }
+            // 잠근 앱 목록 — 점프(곡목록)와 같은 카드 톤으로 띄우되, 잠금 중엔 "추가"만 된다.
+            .glitchReveal(isPresented: $showingLockedApps, dimmed: false) { close in
+                LockedAppsSheet(session: session, onClose: close, asCard: true)
+            }
             // 이미 간주 중이면 새 점프를 막고 "지금은 안 돼요"를 같은 톤으로 띄운다.
             .glitchReveal(isPresented: $showingJumpBlocked) { close in
                 JumpBlockedNotice(session: session, expiry: jumpExpiry, onClose: close)
             }
-            // 푸시(Shield 과업 수행하기)를 탭하면 잠금 화면 위로 곧장 점프(곡목록)를 연다.
+            // 푸시(Shield 과제 수행하기)를 탭하면 잠금 화면 위로 곧장 점프(곡목록)를 연다.
             // 잠금 중엔 RemoteControlView의 시트가 이 풀스크린 커버에 가려 안 보이므로
             // 보이는 레이어인 여기서 직접 처리한다.
             .onReceive(deepLink.$pendingSessionId) { id in
@@ -183,22 +194,16 @@ enum LockDrawerMetrics {
 /// 잠금 중엔 잠글 앱 "추가"만 가능, 점프는 작은 유혹 버튼.
 private struct LockRemoteBar: View {
     let session: Session
+    /// 빨간 "잠근 앱" 키 → 잠근 앱 목록(추가 전용) 카드를 연다.
+    let onManage: () -> Void
     let onJump: () -> Void
-
-    @Environment(\.modelContext) private var modelContext
-
-    @State private var showingPicker = false
-    @State private var pickerSelection = FamilyActivitySelection()
 
     private var appCount: Int { session.selection.applicationTokens.count }
 
     var body: some View {
         HStack(spacing: 10) {
-            // 기본 리모컨의 빨간 "잠글 앱 관리" 키캡 — 잠금 중엔 추가만 된다.
-            Button {
-                pickerSelection = session.selection
-                showingPicker = true
-            } label: {
+            // 기본 리모컨의 빨간 "잠근 앱" 키캡 — 누르면 잠근 앱 목록을 열고, 거기서 추가만 된다.
+            Button { onManage() } label: {
                 manageKey
             }
             .buttonStyle(.plain)
@@ -225,10 +230,6 @@ private struct LockRemoteBar: View {
                 .shadow(color: .black.opacity(0.35), radius: 18, y: -4)
                 .ignoresSafeArea(edges: .bottom)
         }
-        .familyActivityPicker(isPresented: $showingPicker, selection: $pickerSelection)
-        .onChange(of: showingPicker) { _, isShown in
-            if !isShown { commitAddedApps() }
-        }
     }
 
     /// 기본 리모컨의 빨간 "잠글 앱 관리" 키캡 — 잠금 앱 수도 함께 보여준다.
@@ -252,7 +253,7 @@ private struct LockRemoteBar: View {
         .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
     }
 
-    /// 초록 "점프" 키캡 — 과업하고 잠깐 풀기. 관리 버튼과 약 2:1 비율로 넉넉히 키운다.
+    /// 초록 "점프" 키캡 — 과제하고 잠깐 풀기. 관리 버튼과 약 2:1 비율로 넉넉히 키운다.
     private var jumpKey: some View {
         HStack(spacing: 5) {
             Image(systemName: "music.note")
@@ -273,14 +274,131 @@ private struct LockRemoteBar: View {
         .overlay(RoundedRectangle(cornerRadius: 11).stroke(.black.opacity(0.18), lineWidth: 1))
         .shadow(color: .black.opacity(0.22), radius: 3, y: 2)
     }
+}
 
-    /// 잠금 중엔 "추가"만 허용한다: 기존 선택에 합집합으로 더하고(제거는 무시),
+// MARK: - 잠근 앱 목록 (추가 전용)
+
+/// 슬림 리모컨의 "잠근 앱" 키가 여는 카드. 지금 잠근 앱을 곡목록처럼 보여주고,
+/// 잠금 중엔 빼기 없이 "더하기"만 허용한다. (예전엔 시스템 피커에 현재 선택을 채워
+/// 띄워 빼기가 가능해 보였지만 합집합만 반영돼 "체크 풀고 나오면 그대로"였다.
+/// 이제 추가 피커는 빈 선택으로 열어, 기존 잠금은 건드릴 수 없게 한다.)
+private struct LockedAppsSheet: View {
+    let session: Session
+    var onClose: () -> Void
+    /// 잠금 화면 위에 띄울 때 true. 풀스크린 대신 위로 잠금 화면이 비치는 둥근 카드로 그린다.
+    var asCard: Bool = false
+
+    @Environment(\.modelContext) private var modelContext
+    @State private var showingPicker = false
+    /// 추가용 피커는 항상 빈 선택으로 연다 — 기존 잠금은 보이지 않아 뺄 수 없고, 고른 것만 더해진다.
+    @State private var addSelection = FamilyActivitySelection()
+
+    private var appCount: Int { session.selection.applicationTokens.count }
+    private var categoryCount: Int { session.selection.categoryTokens.count }
+    private var webCount: Int { session.selection.webDomainTokens.count }
+    private var totalCount: Int { appCount + categoryCount + webCount }
+
+    var body: some View {
+        presentationBody
+            .familyActivityPicker(isPresented: $showingPicker, selection: $addSelection)
+            .onChange(of: showingPicker) { _, isShown in
+                if !isShown { commitAddedApps() }
+            }
+    }
+
+    @ViewBuilder private var presentationBody: some View {
+        if asCard {
+            VStack(spacing: 0) {
+                Spacer(minLength: 10)   // 점프 카드와 같은 작은 상단 여백 — 타이틀은 카드가 덮는다
+                ZStack {
+                    NeonBlurBackground()
+                    content
+                }
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
+            }
+            .ignoresSafeArea(edges: .bottom)
+        } else {
+            ZStack {
+                NeonBlurBackground()
+                content
+            }
+        }
+    }
+
+    private var content: some View {
+        VStack(spacing: 0) {
+            header
+
+            Group {
+                if totalCount == 0 {
+                    VStack(spacing: 10) {
+                        OutlinedText(text: "아직 잠근 앱이 없어요", size: 20, alignment: .center)
+                        Text("아래에서 잠글 앱을 더해보세요")
+                            .font(.myungjoLight(13))
+                            .foregroundStyle(.white.opacity(0.6))
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 22)
+                } else {
+                    KaraokeSongList(selection: session.selection)
+                        .padding(.horizontal, 22)
+                        .padding(.top, 18)
+                        .padding(.bottom, 10)
+                }
+            }
+            .frame(maxHeight: .infinity)
+
+            // 잠금 중엔 빼기 없이 더하기만 — 키패드 화면과 톤을 맞춘 옅은 안내.
+            Text("잠금 중엔 앱을 더하기만 할 수 있어요")
+                .font(.myungjoLight(12))
+                .foregroundStyle(.white.opacity(0.55))
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 22)
+                .padding(.vertical, 10)
+                .background(Color.black.opacity(0.20))
+
+            Button {
+                addSelection = FamilyActivitySelection()   // 항상 빈 선택으로 — 추가만.
+                showingPicker = true
+            } label: {
+                Label("잠글 앱 더하기", systemImage: "plus.circle.fill")
+            }
+            .buttonStyle(KaraokeButtonStyle(color: KColor.green))
+            .padding(.horizontal, 22)
+            .padding(.top, 12)
+            .padding(.bottom, 20)
+        }
+    }
+
+    private var header: some View {
+        HStack {
+            NowPlayingBox(
+                tag: "잠금",
+                tagColor: KColor.pink,
+                title: "잠근 앱 \(totalCount)개",
+                subtitle: "지금 이별 중인 앱들"
+            )
+            Spacer()
+            Button { onClose() } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundStyle(.white.opacity(0.7))
+                    .padding(10)
+                    .background(Color.black.opacity(0.35))
+                    .clipShape(Circle())
+            }
+        }
+        .padding(.horizontal, 22)
+        .padding(.top, 18)
+    }
+
+    /// 잠금 중엔 "추가"만 허용한다: 고른 앱을 기존 선택에 합집합으로 더하고,
     /// 임시 해제를 보존하며 차단을 다시 적용한다. 남은 시간(endsAt)은 건드리지 않는다.
     private func commitAddedApps() {
         var merged = session.selection
-        merged.applicationTokens.formUnion(pickerSelection.applicationTokens)
-        merged.categoryTokens.formUnion(pickerSelection.categoryTokens)
-        merged.webDomainTokens.formUnion(pickerSelection.webDomainTokens)
+        merged.applicationTokens.formUnion(addSelection.applicationTokens)
+        merged.categoryTokens.formUnion(addSelection.categoryTokens)
+        merged.webDomainTokens.formUnion(addSelection.webDomainTokens)
 
         let current = session.selection
         let changed = merged.applicationTokens != current.applicationTokens

@@ -1,9 +1,10 @@
 import SwiftUI
 import SwiftData
 import FamilyControls
+import WidgetKit
 
 /// 노래방 리모컨 컨셉의 홈 화면. 앱 실행 시 첫 화면.
-/// 숫자패드로 시간(HHMM) 입력 → 모드/앱/과업 설정 → 시작으로 잠금 세션 시작.
+/// 숫자패드로 시간(HHMM) 입력 → 모드/앱/과제 설정 → 시작으로 잠금 세션 시작.
 struct RemoteControlView: View {
     @Environment(\.modelContext) private var modelContext
     @StateObject private var vm = RemoteViewModel()
@@ -21,9 +22,6 @@ struct RemoteControlView: View {
     /// 리모컨 모달 안에서 보여줄 페이지. 시작 확인·감시 설정은 모달 위에 새 모달을
     /// 띄우지 않고(=이중 모달 금지) 이 값만 바꿔 모달 안에서 좌우로 밀어 전환한다.
     @State private var page: RemotePage = .keypad
-    /// 키패드 페이지의 실측 높이. 시작/감시 페이지를 같은 높이로 맞춰 전환이
-    /// 위아래로 튀지 않고 순수 좌우 슬라이드로만 보이게 한다.
-    @State private var keypadHeight: CGFloat = 0
     @State private var errorMessage: String?
     @State private var taskExecutionSessionId: UUID?
     @State private var editingPreset: SessionPreset?
@@ -34,11 +32,24 @@ struct RemoteControlView: View {
     @State private var blockHintIsNotice = false
     /// 안내 자동 숨김 타이머 식별용. 연타 시 이전 타이머가 새 안내를 지우지 않게 한다.
     @State private var blockHintGeneration = 0
+    /// 지금 감시가 걸려 있는지. 켜져 있으면 감시 버튼이 "오늘 감시 끄기"로 바뀐다.
+    @State private var watchdogActive = LockWidgetBridge.readWatchdog() != nil
 
     /// 유저가 마지막으로 사용한 잠금 시간(초). 기본값 1시간.
     @AppStorage("lastDurationSeconds") private var lastDurationSeconds: Int = 60 * 60
+    /// "점수 제거" — 켜져 있으면 완주 축하(콘페티+100점)도 함께 끈다.
+    @AppStorage("hideKaraokeScore") private var hideKaraokeScore = false
+
+    @Environment(\.scenePhase) private var scenePhase
+    /// 잠금이 끝나는 순간(포그라운드)에도 잠금 화면이 닫히고 축하가 뜨도록 1초 틱을 관찰.
+    @ObservedObject private var ticker = Ticker.shared
+    /// 지금 축하 화면을 띄울 완주 세션. nil이면 축하 없음.
+    @State private var celebrationSessionID: UUID?
 
     private var activeSessions: [Session] { sessions.filter { $0.isActive } }
+
+    /// 지금 선택된 모드(=곡). 시작 확인 화면이 이 이름을 곡 제목으로 보여준다.
+    private var activePreset: SessionPreset? { presets.first { $0.id == vm.activePresetID } }
 
     var body: some View {
         NavigationStack {
@@ -46,30 +57,27 @@ struct RemoteControlView: View {
                 // 뒤: 실제 잠금화면과 같은 노래방 CRT TV 배경.
                 KaraokeBackground().ignoresSafeArea()
 
-                // 위쪽엔 빈 노래방 TV가 살짝 보이고("빨리 잠그고 싶게"),
-                // 컨트롤은 전부 하단 크림 리모컨 "모달"에 모은다.
+                // 위: 노래방 TV. 평소엔 "선곡 대기", 시작을 누르면 그 자리에서
+                // "이 곡을 부르시겠습니까?" 확인 화면으로 바뀐다(빈 네모가 morph).
+                // 아래: 리모컨. 평소엔 풀 리모컨(키패드), 시작을 누르면 아래로 빠지며
+                // 슬림 리모컨("잠그는 중")으로 전환된다.
                 VStack(spacing: 0) {
-                    tvIdle
+                    tvArea
                         .padding(.top, 30)
                         .padding(.horizontal, 24)
-                    Spacer(minLength: 8)
-                    remoteModal
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+
+                    bottomRemote
                 }
-                // 모드 이름 변경 팝업의 키보드가 올라와도 뒤 화면(숫자패드 등)은 밀리지 않게.
+                // 곡 정보 편집은 위 TV 안 디지털 패널(.songInfo 페이지)로 들어오고
+                // 리모컨은 아래로 빠지므로, 그 키보드가 올라와도 뒤 화면은 밀리지 않게.
                 .ignoresSafeArea(.keyboard, edges: .bottom)
 
-                if let preset = editingPreset {
-                    ModeNameEditor(
-                        preset: preset,
-                        onSave: { if vm.activePresetID == preset.id { vm.load(preset) } },
-                        onClose: {
-                            withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
-                                editingPreset = nil
-                            }
-                        }
-                    )
-                    .transition(.scale(scale: 0.92).combined(with: .opacity))
-                    .zIndex(1)
+                // 잠금을 끝까지 버틴 직후 앱에 들어오면 콘페티+100점을 한 번 터뜨린다.
+                if celebrationSessionID != nil {
+                    KaraokeScoreScreen(onContinue: { celebrationSessionID = nil })
+                        .transition(.opacity)
+                        .zIndex(2)
                 }
             }
             .navigationBarHidden(true)
@@ -111,12 +119,26 @@ struct RemoteControlView: View {
             } message: {
                 Text("앱을 잠그고 노래 중일 때에만 간주 점프에 도전할 수 있어요.")
             }
-            .onAppear(perform: setupPresets)
+            .onAppear {
+                setupPresets()
+                checkCelebration()
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { checkCelebration() }
+            }
+            // 시간·앱 변경 즉시 active preset에 자동저장 — 피커/StateObject 재생성 후에도 복원.
+            .onChange(of: vm.digits) { _, _ in saveToPreset() }
+            .onChange(of: vm.selection) { _, _ in saveToPreset() }
+            // 포그라운드에서 잠금이 막 끝났을 때(활성 세션이 비는 순간)도 축하를 띄운다.
+            .onChange(of: activeSessions.isEmpty) { _, empty in
+                if empty { checkCelebration() }
+            }
+            .animation(.easeInOut(duration: 0.3), value: celebrationSessionID)
             .onReceive(deepLink.$pendingSessionId) { id in
                 guard let id else { return }
                 // 잠금이 활성이면 잠금 화면(LockScreenView)이 점프(곡목록)를 직접 연다.
                 // 풀스크린 커버에 가려 시트가 안 보이므로 여기선 건드리지 않는다.
-                // 잠금이 없는 상태(만료된 알림을 뒤늦게 탭 등)에서만 과업 화면을 띄운다.
+                // 잠금이 없는 상태(만료된 알림을 뒤늦게 탭 등)에서만 과제 화면을 띄운다.
                 guard activeSessions.isEmpty else { return }
                 taskExecutionSessionId = id
                 deepLink.clear()
@@ -124,63 +146,87 @@ struct RemoteControlView: View {
         }
     }
 
-    // MARK: - 빈 TV 대기 영역 (모달 위로 살짝 보이는 부분)
+    // MARK: - 위쪽 TV 영역 (선곡 대기 ↔ 시작 확인)
 
-    /// 잠금 전, 위쪽에 보이는 노래방 "선곡 대기" 화면. 옛날 노래방 기기가 곡 입력을
-    /// 기다릴 때처럼 자막·이퀄라이저로 살아 움직여 빨리 시작하고 싶게 만든다.
-    private var tvIdle: some View { KaraokeStandbyTV() }
-
-    // MARK: - 리모컨 모달 (하단 시트)
-
-    /// 크림 보디 + 하늘색 테두리 + 비닐막. 안에 LED·기능·숫자패드·시작을 모은다.
-    private var remoteModal: some View {
-        VStack(spacing: 13) {
-            Capsule()
-                .fill(.black.opacity(0.16))
-                .frame(width: 48, height: 5)
-                .padding(.top, 4)
-
-            header
-
-            // 모달 위 모달 대신, 한 모달 안에서 화면만 좌우로 밀어 전환한다.
-            // 키패드는 왼쪽 가장자리, 시작/감시 카드는 오른쪽 가장자리로 드나든다.
-            ZStack {
-                switch page {
-                case .keypad:
-                    keypadPage
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .leading).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)))
-                case .start:
-                    startCard
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .trailing).combined(with: .opacity)))
-                }
+    /// 위쪽 노래방 TV. 평소엔 "선곡 대기"(KaraokeStandbyTV), 시작을 누르면 같은 자리에서
+    /// "이 곡을 부르시겠습니까?" 확인 화면으로 바뀐다. 리모컨이 슬림으로 빠지며 생긴
+    /// 공간을 확인 화면이 채운다.
+    @ViewBuilder private var tvArea: some View {
+        switch page {
+        case .keypad:
+            KaraokeStandbyTV()
+                .transition(.opacity.combined(with: .scale(scale: 0.97)))
+        case .start:
+            StartConfirmSheet(
+                songTitle: activePreset?.displayTitle ?? "곡 미정",
+                songNumber: (activePreset?.name).flatMap { $0.isEmpty ? nil : $0 } ?? "—",
+                selection: vm.selection,
+                durationClock: durationClock(vm.totalSeconds),
+                onStart: { go(to: .keypad); start() },
+                onCancel: { go(to: .keypad) }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity.combined(with: .scale(scale: 0.97)))
+        case .songInfo:
+            // 곡 정보(별칭·곡 제목)도 카드 팝업이 아니라 TV 화면 속 디지털 패널로 들어온다.
+            // 리모컨이 아래로 빠지며 생긴 공간에 노래찾기 패널이 떠오른다.
+            if let preset = editingPreset {
+                ModeNameEditor(
+                    preset: preset,
+                    onSave: { },
+                    onClose: { closeSongInfo() }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                .transition(.opacity.combined(with: .scale(scale: 0.97)))
             }
-            // 슬라이드 중 옆 페이지가 모달 밖으로 삐져나오지 않게 가둔다.
-            .clipped()
+        }
+    }
+
+    // MARK: - 하단 리모컨 (풀 ↔ 슬림)
+
+    /// 아래 리모컨. 평소엔 풀 리모컨(키패드), 시작을 누르면 아래로 빠지며 슬림 리모컨으로
+    /// 전환된다. 둘 다 아래 가장자리로 드나들어 "삭 빠지고 새로 올라오는" 느낌을 준다.
+    @ViewBuilder private var bottomRemote: some View {
+        switch page {
+        case .keypad:
+            fullRemote
+                .transition(.move(edge: .bottom))
+        case .start, .songInfo:
+            // 시작 확인·곡 정보 화면에선 하단 리모컨을 아래로 빼고 띄우지 않는다.
+            // TV 안 디지털 화면이 전체를 쓰며, 취소/시작·완료는 그 안의 액션바가 담당한다.
+            EmptyView()
+        }
+    }
+
+    /// 크림 보디 + 하늘색 테두리 + 비닐막. 안에 LED·기능·숫자패드·시작을 모은다. (핸들 없음)
+    private var fullRemote: some View {
+        VStack(spacing: 13) {
+            header
+            keypadPage
         }
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .padding(.bottom, 8)
-        .background(alignment: .top) {
-            UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0,
-                                   bottomTrailingRadius: 0, topTrailingRadius: 30)
-                .fill(RemoteTheme.background)
-                .overlay {
-                    UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0,
-                                           bottomTrailingRadius: 0, topTrailingRadius: 30)
-                        .stroke(Color(hex: 0xa8cee8).opacity(0.75), lineWidth: 2.5)
-                }
-                .overlay { remoteFilm }
-                .ignoresSafeArea(edges: .bottom)
-        }
+        .background(alignment: .top) { remoteBody }
     }
 
-    // MARK: - 리모컨 모달 안의 페이지들
+    /// 크림 보디 + 하늘색 테두리 + 비닐막 — 풀 리모컨의 바탕.
+    private var remoteBody: some View {
+        UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0,
+                               bottomTrailingRadius: 0, topTrailingRadius: 30)
+            .fill(RemoteTheme.background)
+            .overlay {
+                UnevenRoundedRectangle(topLeadingRadius: 30, bottomLeadingRadius: 0,
+                                       bottomTrailingRadius: 0, topTrailingRadius: 30)
+                    .stroke(Color(hex: 0xa8cee8).opacity(0.75), lineWidth: 2.5)
+            }
+            .overlay { remoteFilm }
+            .ignoresSafeArea(edges: .bottom)
+    }
 
-    /// 기본 페이지 — LED·기능키·숫자패드·시작. 높이를 실측해 시작/감시 카드와 맞춘다.
+    // MARK: - 리모컨 안의 페이지들
+
+    /// 기본 페이지 — LED·기능키·숫자패드·시작.
     private var keypadPage: some View {
         VStack(spacing: 13) {
             if let session = activeSessions.first {
@@ -209,26 +255,6 @@ struct RemoteControlView: View {
 
             startButton
         }
-        .background(
-            GeometryReader { proxy in
-                Color.clear.preference(key: PanelHeightKey.self, value: proxy.size.height)
-            }
-        )
-        .onPreferenceChange(PanelHeightKey.self) { keypadHeight = $0 }
-    }
-
-    /// 시작 확인 카드 — 모달 위 시트가 아니라 키패드와 같은 높이의 카드로 끼워 넣는다.
-    private var startCard: some View {
-        StartConfirmSheet(
-            selection: vm.selection,
-            durationText: durationText(vm.totalSeconds),
-            onStart: {
-                go(to: .keypad)
-                start()
-            },
-            onCancel: { go(to: .keypad) }
-        )
-        .frame(height: keypadHeight > 0 ? keypadHeight : nil)
     }
 
     /// 비닐막 — 리모컨 모달 표면의 라미네이트 느낌(사선 빛줄기 + 가장자리 광). 터치는 통과.
@@ -352,19 +378,27 @@ struct RemoteControlView: View {
                 if vm.mode == .watchdog { showingWatchdogPicker = true } else { showingPicker = true }
             } label: { manageBar }
                 .buttonStyle(.plain)
+            // 작아진 키들이 위로 모이도록 남는 높이는 아래 여백으로. (숫자패드 상단과 정렬 유지)
+            Spacer(minLength: 0)
         }
     }
 
     private func presetButton(_ preset: SessionPreset) -> some View {
-        PresetButton(name: preset.name, selected: vm.activePresetID == preset.id) {
+        // 감시 모드일 땐 곡 하이라이트를 끈다 — 리모컨에선 곡/감시 중 하나만 켜진 것처럼 보이게.
+        // (activePresetID 자체는 보존하므로 잠금 모드로 돌아오면 곡 선택이 되살아난다.)
+        PresetButton(alias: preset.name, selected: vm.mode != .watchdog && vm.activePresetID == preset.id) {
             if vm.activePresetID == preset.id {
-                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
-                    editingPreset = preset
-                }
+                // 이미 선택된 곡을 다시 누르면: 리모컨이 내려가고 곡 정보가 TV 안으로 들어온다.
+                editingPreset = preset
+                go(to: .songInfo)
             } else {
                 vm.load(preset)
             }
         }
+        // 감시 모드일 땐 곡 키들이 한 발 물러나 보이도록 살짝 흐린다. (여전히 누를 순 있음)
+        .opacity(vm.mode == .watchdog ? 0.45 : 1)
+        .disabled(vm.mode == .watchdog)
+        .animation(.easeInOut(duration: 0.2), value: vm.mode)
     }
 
     private var jumpButton: some View {
@@ -376,6 +410,10 @@ struct RemoteControlView: View {
                 showingJump = true
             }
         }
+        // 곡 키와 같이, 감시 모드일 땐 점프도 한 발 물러나 보이게 살짝 흐린다.
+        .opacity(vm.mode == .watchdog ? 0.45 : 1)
+        .disabled(vm.mode == .watchdog)
+        .animation(.easeInOut(duration: 0.2), value: vm.mode)
     }
 
     /// 좌(기능) + 우(숫자패드) 분할. 숫자패드 4줄 높이(키 56 × 4 + 간격 6 × 3 = 242)에
@@ -437,7 +475,7 @@ struct RemoteControlView: View {
         let watchdog = vm.mode == .watchdog
         let count = watchdog ? watchdogSelectionCount : vm.selection.applicationTokens.count
         let title: String = watchdog
-            ? (count == 0 ? "감시할 앱\n고르기" : "감시할 앱\n· \(count)")
+            ? (count == 0 ? "하루 사용량\n제한할 앱" : "하루 사용량\n제한할 앱 · \(count)")
             : (count == 0 ? "잠글 앱\n관리" : "잠글 앱\n관리 · \(count)")
         let colors = watchdog
             ? [Color(hex: 0x2bb5a4), Color(hex: 0x15897b)]
@@ -445,16 +483,18 @@ struct RemoteControlView: View {
         return Text(title)
             .multilineTextAlignment(.center)
             .lineSpacing(1)
-            .font(.system(size: 18, weight: .black))
+            .font(.system(size: 16, weight: .black))
             .foregroundStyle(.white)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity)
+            .frame(height: 62)
             .background(
-                RoundedRectangle(cornerRadius: 10).fill(
+                RoundedRectangle(cornerRadius: 18).fill(
                     LinearGradient(colors: colors, startPoint: .top, endPoint: .bottom)
                 )
+                .shadow(color: .black.opacity(0.16), radius: 2.5, y: 1.5)
             )
-            .overlay(alignment: .top) { keycapGloss(radius: 10) }
-            .overlay(RoundedRectangle(cornerRadius: 10).stroke(.black.opacity(0.18), lineWidth: 1))
+            .overlay(alignment: .top) { keycapGloss(radius: 18) }
+            .overlay(RoundedRectangle(cornerRadius: 18).stroke(.black.opacity(0.12), lineWidth: 1))
     }
 
     /// 감시 대상 개수(앱+카테고리+웹도메인).
@@ -485,11 +525,16 @@ struct RemoteControlView: View {
     }
 
     private var startButton: some View {
-        // 잠금=노랑 "시 작 ▶", 감시=검정 "오늘부터 감시 걸기 ▶".
+        // 잠금=노랑 "시 작 ▶", 감시=검정 "오늘부터 감시 걸기 ▶"(이미 걸렸으면 "오늘 감시 끄기").
         let watchdog = vm.mode == .watchdog
+        let label = watchdog
+            ? (watchdogActive ? "오늘 감시 끄기" : "오늘부터 감시 걸기 ▶")
+            : "시 작 ▶"
+        // 감시가 켜져 있으면 끄기는 항상 가능. 아니면 설정 유효성으로 활성화.
+        let enabled = watchdog ? (watchdogActive || vm.canSaveWatchdog) : vm.canStart
         // 막혔을 때도 탭은 받아서 안내를 띄운다(.disabled 이면 탭이 안 들어옴).
         return Button(action: watchdog ? tapWatchdogStart : tapStart) {
-            Text(watchdog ? "오늘부터 감시 걸기 ▶" : "시 작 ▶")
+            Text(label)
                 .font(.system(size: watchdog ? 22 : 30, weight: .black))
                 .tracking(watchdog ? 1 : 6)
                 .foregroundStyle(watchdog ? .white : Color(hex: 0x2a2e06))
@@ -507,7 +552,7 @@ struct RemoteControlView: View {
                 .overlay(alignment: .top) { keycapGloss(radius: 30) }
                 .overlay(RoundedRectangle(cornerRadius: 30).stroke(.black.opacity(0.18), lineWidth: 1))
                 // 뿌연 네온 글로우 제거 — 실물처럼 또렷한 아날로그 버튼으로.
-                .opacity((watchdog ? vm.canSaveWatchdog : vm.canStart) ? 1 : 0.45)
+                .opacity(enabled ? 1 : 0.45)
         }
         .buttonStyle(.plain)
     }
@@ -522,20 +567,31 @@ struct RemoteControlView: View {
         }
     }
 
-    /// 감시 걸기 탭. 가능하면 곧장 감시를 걸고(확인 시트 없음), 아니면 막힌 이유를 안내한다.
+    /// 감시 걸기/끄기 탭. 이미 걸려 있으면 끄고, 아니면 곧장 건다(확인 시트 없음).
     private func tapWatchdogStart() {
-        if vm.canSaveWatchdog {
+        if watchdogActive {
+            stopWatchdog()
+        } else if vm.canSaveWatchdog {
             startWatchdog()
         } else if let reason = vm.watchdogBlockReason {
             showBlockHint(reason)
         }
     }
 
-    /// 리모컨 모달 안에서 페이지를 바꾼다. 키패드는 왼쪽 가장자리로, 시작/감시
-    /// 페이지는 오른쪽 가장자리로 드나들어 "앞으로/뒤로" 내비게이션처럼 보인다.
+    /// 키패드 ↔ 시작 확인 전환. 리모컨은 아래로 빠지고(슬림화) 위 TV는 확인 화면으로
+    /// 바뀐다. 한 번의 스프링으로 위·아래가 함께 움직이게 묶는다.
     private func go(to newPage: RemotePage) {
         withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) {
             page = newPage
+        }
+    }
+
+    /// 곡 정보 화면 닫기 — 키패드로 되돌리고(리모컨 복귀), 전환이 끝난 뒤 편집 대상 비움.
+    /// 사라지는 패널이 빈 화면으로 깜빡이지 않도록 스프링이 끝날 즈음에 nil 처리한다.
+    private func closeSongInfo() {
+        go(to: .keypad)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            if page == .keypad { editingPreset = nil }
         }
     }
 
@@ -562,15 +618,40 @@ struct RemoteControlView: View {
         }
     }
 
-    /// 감시를 건다. 지금은 UI 흐름만 — 실제 등록은 TODO. 끝나면 잠금 모드로 돌아오며 확인을 띄운다.
+    /// 감시를 건다. 하루 한도를 DeviceActivity에 등록하고, 끝나면 잠금 모드로 돌아오며 확인을 띄운다.
     private func startWatchdog() {
-        // TODO(피드백 후 배선): 감시 설정(watchdogSelection + 한도)을 App Group에 저장 →
-        //   DeviceActivityCenter에 daily 스케줄 + threshold(watchdogTotalSeconds) 이벤트 등록.
-        //   알림 권한이 거절 상태면 "설정에서 알림 켜기" 안내를 띄운다.
-        //   넘는 순간 익스텐션 eventDidReachThreshold → 로컬 알림 → 탭 시 시작 확인 시트(딥링크).
-        let limit = durationText(vm.watchdogTotalSeconds)
+        let limitMinutes = vm.watchdogTotalSeconds / 60
+        do {
+            // 매일 반복 한도 모니터링 등록 — 한도 초과 시 익스텐션이 그 앱들을 차단한다.
+            try ActivityScheduler.shared.scheduleWatchdog(
+                selection: vm.watchdogSelection,
+                limitMinutes: limitMinutes
+            )
+        } catch {
+            showBlockHint("감시 예약에 실패했어요: \(error.localizedDescription)")
+            return
+        }
+        // 위젯 "감시 중" 상태 공유.
+        LockWidgetBridge.writeWatchdog(WatchdogWidgetState(
+            appCount: watchdogSelectionCount,
+            dailyLimitMinutes: limitMinutes,
+            startedAt: Date()
+        ))
+        WidgetCenter.shared.reloadAllTimelines()
+        watchdogActive = true
         withAnimation(.spring(response: 0.42, dampingFraction: 0.86)) { vm.mode = .lock }
-        showBlockHint("감시를 걸었어요 · 하루 \(limit)", isNotice: true)
+        showBlockHint("감시를 걸었어요 · 하루 \(durationText(vm.watchdogTotalSeconds))", isNotice: true)
+    }
+
+    /// 감시 해제 — 모니터링 중단 + 차단 즉시 해제 + 위젯 상태 정리.
+    private func stopWatchdog() {
+        ActivityScheduler.shared.cancelWatchdog()
+        ManagedSettingsController.shared.clearWatchdogShield()
+        LockWidgetBridge.foldWatchdogDays()   // 켜뒀던 기간을 누적 감시 일수에 더한 뒤
+        LockWidgetBridge.clearWatchdog()
+        WidgetCenter.shared.reloadAllTimelines()
+        watchdogActive = false
+        showBlockHint("감시를 껐어요", isNotice: true)
     }
 
     // MARK: - 동작
@@ -587,10 +668,17 @@ struct RemoteControlView: View {
                 vm.setDuration(lastDurationSeconds)
             }
         } else if vm.activePresetID == nil, let first = presets.first {
+            // preset에 저장된 시간·앱을 복원한다 (자동저장으로 항상 최신 상태).
             vm.load(first)
-            // 모드의 저장 시간 대신, 유저가 마지막으로 쓴 시간을 LED에 보여준다.
-            vm.setDuration(lastDurationSeconds)
         }
+    }
+
+    /// 현재 입력(시간·앱)을 active preset에 저장한다. 앱 선택 또는 시간이 바뀔 때마다 호출.
+    private func saveToPreset() {
+        guard let preset = activePreset else { return }
+        vm.applyToPreset(preset)
+        lastDurationSeconds = vm.totalSeconds
+        try? modelContext.save()
     }
 
     private func durationText(_ seconds: Int) -> String {
@@ -604,6 +692,30 @@ struct RemoteControlView: View {
         return parts.isEmpty ? "0분" : parts.joined(separator: " ")
     }
 
+    /// LED 디스플레이와 같은 일:시:분 표기(DD:HH:MM)로 잠금 시간을 보여준다.
+    /// 리모컨 LED의 DAY·HOUR·MIN 배치와 동일 — 초 단위는 의미 없으므로 생략.
+    private func durationClock(_ seconds: Int) -> String {
+        let d = seconds / 86400
+        let h = (seconds % 86400) / 3600
+        let m = (seconds % 3600) / 60
+        return String(format: "%02d:%02d:%02d", d, h, m)
+    }
+
+    /// 완주한 세션이 있으면 축하 화면을 띄운다(점수 제거가 켜져 있으면 조용히 넘긴다).
+    /// 활성 세션이 떠 있는 동안엔(잠금 화면이 덮고 있으니) 잠시 미룬다.
+    private func checkCelebration() {
+        guard celebrationSessionID == nil, activeSessions.isEmpty else { return }
+        // sessions는 최신순 정렬 — 가장 최근에 완주한 대기 세션을 고른다.
+        guard let session = sessions.first(where: {
+            !$0.isActive && KaraokeCelebrationTracker.isPending($0.id)
+        }) else { return }
+
+        // 한 번만 — 점수 제거든 축하든 대기 목록에서 비운다.
+        KaraokeCelebrationTracker.consume(session.id)
+        guard !hideKaraokeScore else { return }
+        celebrationSessionID = session.id
+    }
+
     private func start() {
         let store = SessionStore(modelContext: modelContext)
         do {
@@ -612,7 +724,9 @@ struct RemoteControlView: View {
             _ = try store.start(
                 endsAt: vm.endsAt,
                 selection: vm.selection,
-                passDurationMinutes: vm.passDurationMinutes
+                passDurationMinutes: vm.passDurationMinutes,
+                title: activePreset?.displayTitle ?? "",
+                nickname: activePreset?.name ?? ""
             )
             // 0분으로 비우지 않고, 방금 쓴 시간을 그대로 유지한다.
             vm.setDuration(lastDurationSeconds)
@@ -628,17 +742,9 @@ struct RemoteControlView: View {
 
 private struct IdentifiableUUID: Identifiable { let id: UUID }
 
-/// 리모컨 모달 안에서 보여줄 페이지. (모달 위 모달 대신 한 모달 안에서 전환)
+/// 화면 상태. keypad=풀 리모컨+선곡 대기 TV, start=슬림 리모컨+시작 확인 TV.
 /// 감시는 별도 페이지가 아니라 키패드 페이지의 한 "모드"로 동작한다(vm.mode).
-private enum RemotePage { case keypad, start }
-
-/// 키패드 페이지 높이를 부모로 올려 보내, 시작/감시 카드를 같은 높이로 맞추는 키.
-private struct PanelHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
-    }
-}
+private enum RemotePage { case keypad, start, songInfo }
 
 // MARK: - 노래방 선곡 대기 화면 (리모컨 위로 보이는 빈 TV)
 
@@ -710,15 +816,21 @@ private struct KaraokeStandbyTV: View {
     }
 }
 
-// MARK: - 시작 전 확인 시트
+// MARK: - 시작 전 확인 화면 ("이 곡을 부르시겠습니까?")
 
-/// 어떤 앱을 얼마 동안 떠나보내는지 정확히 보여주고 시작을 확인받는 시트.
+/// 시작을 누르면 위 노래방 TV 자리(선곡 대기)가 이 확인 화면으로 바뀐다.
+/// 카드 팝업이 아니라 **노래방 TV 화면 속 디지털 UI** — 뒤 CRT 배경 위에 곡 헤더·
+/// 큰 곡 제목(=모드명)·"이 곡을 부르시겠습니까?"·곡목록(잠글 앱)·취소/시작을 직접 얹어,
+/// 노래방 인트로(KaraokeIntroView)와 같은 화면 언어로 보이게 한다.
 /// 앱 이름은 FamilyControls 프라이버시상 문자열로 못 빼므로 `Label(token)`으로만 렌더링한다.
-/// 모드 이름 변경 팝업(노래찾기 룩)과 같은 노래방 디자인 — 파란 타이틀바·CRT 다크 본문·
-/// 곡목록처럼 보이는 앱 목록·하단 액션바로 구성한다.
 private struct StartConfirmSheet: View {
+    /// 선곡된 곡 제목 = 활성 모드 이름.
+    let songTitle: String
+    /// 곡목록 위에 보일 곡 번호(노래방 차트 룩).
+    let songNumber: String
     let selection: FamilyActivitySelection
-    let durationText: String
+    /// 위젯 카운트다운과 같은 시계 표기(HH:MM:SS).
+    let durationClock: String
     let onStart: () -> Void
     let onCancel: () -> Void
 
@@ -727,112 +839,116 @@ private struct StartConfirmSheet: View {
     private var webCount: Int { selection.webDomainTokens.count }
     private var totalCount: Int { appCount + categoryCount + webCount }
 
+    /// 곡목록은 곡 수에 맞춰 크기를 잡고, 많아지면 그 안에서 스크롤한다.
+    /// (maxHeight:.infinity로 화면 전체를 먹어 빈 목록이 거대해지던 문제를 막는다.)
+    private var songListHeight: CGFloat {
+        let rowHeight: CGFloat = 44
+        let visibleRows = min(max(totalCount, 1), 5)
+        return CGFloat(visibleRows) * rowHeight
+    }
+
     var body: some View {
-        // 모달 위 시트가 아니라, 리모컨 모달 안에 끼워지는 카드. 키패드와 같은
-        // 높이를 부모가 잡아주므로 여기선 그 높이를 가득 채우고 둥글게 클립만 한다.
-        VStack(spacing: 0) {
-            titleBar
-            bodyArea
-            bottomBar
+        // 헤더는 위, 액션은 아래에 고정하고 곡 제목·곡목록 블록은 남는 공간 한가운데에
+        // 띄워 화면 전체(특히 그동안 비어 있던 아래쪽)를 고르게 쓴다.
+        VStack(alignment: .leading, spacing: 0) {
+            header
+
+            Spacer(minLength: 16)
+
+            VStack(alignment: .leading, spacing: 18) {
+                titleBlock
+                KaraokeSongList(selection: selection)
+                    .frame(height: songListHeight)
+            }
+
+            Spacer(minLength: 16)
+
+            noteDivider
+                .padding(.bottom, 18)
+            actionBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(
-            LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
-                           startPoint: .top, endPoint: .bottom)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16).stroke(Color(hex: 0x2d4f86), lineWidth: 1.5)
-        )
     }
 
-    // MARK: 파란 타이틀바
+    /// 노래방 인트로처럼 음표 장식 한 줄 — 비어 보이던 아래 공간을 곡 분위기로 채운다.
+    private var noteDivider: some View {
+        HStack(spacing: 16) {
+            ForEach([KColor.cyan, KColor.pink, KColor.yellow, KColor.green], id: \.self) { c in
+                Image(systemName: "music.note")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(c)
+                    .shadow(color: c.opacity(0.7), radius: 6)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .center)
+    }
 
-    private var titleBar: some View {
+    // MARK: 곡 헤더 (선곡 박스 + 기간 칩)
+
+    private var header: some View {
         HStack(spacing: 10) {
-            waveCircle
-            OutlinedText(text: "잠시만 안녕할까요?", size: 19,
-                         fill: Color(hex: 0xeaff6a), stroke: KColor.outline, strokeWidth: 3.5)
-            Spacer(minLength: 6)
+            NowPlayingBox(
+                tag: "선곡",
+                tagColor: KColor.green,
+                title: songNumber,
+                subtitle: "\(totalCount)곡 선곡"
+            )
+            Spacer(minLength: 8)
             durationChip
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 14)
-        .padding(.bottom, 11)
-        .frame(maxWidth: .infinity)
-        .background(
-            LinearGradient(colors: [Color(hex: 0x3c7bd6), Color(hex: 0x1e4f9e)],
-                           startPoint: .top, endPoint: .bottom)
-        )
-        .overlay(alignment: .top) {
-            Rectangle().fill(.white.opacity(0.25)).frame(height: 1.5)
-        }
     }
 
-    private var waveCircle: some View {
-        ZStack {
-            Circle().fill(
-                RadialGradient(colors: [Color(hex: 0xffe08a), Color(hex: 0xe69a28)],
-                               center: .topLeading, startRadius: 1, endRadius: 26)
-            )
-            Circle().stroke(Color(hex: 0x8a571a), lineWidth: 1.5)
-            Image(systemName: "hand.wave.fill")
-                .font(.system(size: 14, weight: .black))
-                .foregroundStyle(Color(hex: 0x5a3a08))
-        }
-        .frame(width: 30, height: 30)
-        .shadow(color: .black.opacity(0.3), radius: 2, y: 1)
-    }
-
+    /// 위젯 "남은 시간"과 같은 표현 — 어두운 패널 위 7세그(DSEG7) 호박색 시계.
     private var durationChip: some View {
-        Text(durationText)
-            .font(.led(13))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(RoundedRectangle(cornerRadius: 5).fill(KColor.pink))
+        HStack(spacing: 8) {
+            Text("부를 시간")
+                .font(.system(size: 9))
+                .foregroundStyle(.white.opacity(0.7))
+            Text(durationClock)
+                .font(.seg7(15))
+                .foregroundStyle(KColor.yellow)
+                .monospacedDigit()
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(Color(red: 0.05, green: 0.06, blue: 0.20).opacity(0.55))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(.white.opacity(0.18), lineWidth: 0.6)
+        )
     }
 
-    // MARK: 본문 (곡목록처럼 보이는 앱 목록)
-    // 기간/안내는 타이틀바(잠시만 안녕할까요? + 기간칩)가 이미 말하므로 본문은 목록만.
+    // MARK: 곡 제목 (모드명) + 확인 문구 — 노래방 인트로 룩
 
-    private var bodyArea: some View {
-        KaraokeSongList(selection: selection)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 14)
-            .frame(maxHeight: .infinity)
-    }
-
-    // MARK: 하단 액션바
-
-    private var bottomBar: some View {
-        HStack(spacing: 10) {
-            Text("\(totalCount)개")
-                .font(.led(13))
-                .foregroundStyle(KColor.cyan)
-            Spacer()
-            actionButton("취소", color: Color(hex: 0x4a5568)) { onCancel() }
-            actionButton("시작", color: KColor.green) { onStart() }
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(Color.black.opacity(0.28))
-        .overlay(alignment: .top) {
-            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
+    private var titleBlock: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 7) {
+                Image(systemName: "music.mic")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(KColor.cyan)
+                Text("이 곡을 부르시겠습니까?")
+                    .font(.led(13))
+                    .foregroundStyle(KColor.cyan)
+                    .shadow(color: KColor.cyan.opacity(0.6), radius: 6)
+            }
+            OutlinedText(text: songTitle, size: 34, fill: KColor.yellow, strokeWidth: 6)
         }
     }
 
-    private func actionButton(_ title: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.myungjo(16))
-                .foregroundStyle(.white)
-                .padding(.horizontal, 22)
-                .padding(.vertical, 9)
-                .background(RoundedRectangle(cornerRadius: 8).fill(color))
-                .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.25), lineWidth: 1))
+    // MARK: 액션 (취소 / 이 곡 부르기 ▶)
+
+    private var actionBar: some View {
+        HStack(spacing: 12) {
+            Button { onCancel() } label: { Text("취소") }
+                .buttonStyle(KaraokeButtonStyle(color: Color(hex: 0x44506a)))
+                .frame(width: 104)
+
+            Button { onStart() } label: { Text("이 곡 부르기 ▶") }
+                .buttonStyle(KaraokeButtonStyle(color: KColor.green))
         }
-        .buttonStyle(.plain)
     }
 }
 
@@ -936,15 +1052,18 @@ private struct FuncButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 2) {
-                Text(title).font(.system(size: 18, weight: .black))
-                if let arrow { Text(arrow).font(.system(size: 16, weight: .bold)).opacity(0.9) }
+                Text(title).font(.system(size: 16, weight: .black))
+                if let arrow { Text(arrow).font(.system(size: 14, weight: .bold)).opacity(0.9) }
             }
             .foregroundStyle(fg)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
-            .background(RoundedRectangle(cornerRadius: 8).fill(gradient))
-            .overlay(RoundedRectangle(cornerRadius: 8).stroke(.black.opacity(0.22), lineWidth: 1))
-            .overlay(alignment: .top) { keycapGloss(radius: 8) }
+            .padding(.vertical, 12)
+            .background(
+                RoundedRectangle(cornerRadius: 16).fill(gradient)
+                    .shadow(color: .black.opacity(0.16), radius: 2.5, y: 1.5)
+            )
+            .overlay(RoundedRectangle(cornerRadius: 16).stroke(.black.opacity(0.12), lineWidth: 1))
+            .overlay(alignment: .top) { keycapGloss(radius: 16) }
         }
         .buttonStyle(.plain)
     }
@@ -967,32 +1086,40 @@ private struct FuncButton: View {
 }
 
 private struct PresetButton: View {
-    let name: String
+    /// 짧은 별칭 — 작은 곳(리모컨 버튼)엔 이것만 노래방 곡번호처럼 보여준다.
+    /// 곡 풀네임은 버튼에 안 쓰고, 눌러서 여는 확인화면·편집 팝업에서만 크게 보인다.
+    let alias: String
     let selected: Bool
     let action: () -> Void
 
+    private var hasAlias: Bool { !alias.trimmingCharacters(in: .whitespaces).isEmpty }
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 3) {
+            HStack(spacing: 4) {
                 if selected {
                     Circle().fill(Color(hex: 0xe8853a)).frame(width: 5, height: 5)
                 }
-                // 모드 이름: 검정·또렷하게
-                Text(name).font(.system(size: 18, weight: .black))
+                // 별칭 = 곡번호 룩(모노스페이스 파랑). 없으면 옅은 "곡 미정".
+                Text(hasAlias ? alias : "곡 미정")
+                    .font(.system(size: 17, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(hasAlias ? Color(hex: 0x3f73bd) : Color(hex: 0x1a1a1a).opacity(0.38))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
             }
-            .foregroundStyle(Color(hex: 0x1a1a1a))
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 15)
+            .padding(.vertical, 12)
             .background(
-                RoundedRectangle(cornerRadius: 8).fill(
+                RoundedRectangle(cornerRadius: 16).fill(
                     LinearGradient(colors: [Color(hex: 0xf4eedd), Color(hex: 0xe6dcc3)],
                                    startPoint: .top, endPoint: .bottom)
                 )
+                .shadow(color: .black.opacity(0.16), radius: 2.5, y: 1.5)
             )
-            .overlay(alignment: .top) { keycapGloss(radius: 8) }
+            .overlay(alignment: .top) { keycapGloss(radius: 16) }
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .strokeBorder(selected ? Color(hex: 0x3f73bd) : .black.opacity(0.2),
+                RoundedRectangle(cornerRadius: 16)
+                    .strokeBorder(selected ? Color(hex: 0x3f73bd) : .black.opacity(0.12),
                                   lineWidth: selected ? 2 : 1)
             )
         }
@@ -1090,40 +1217,49 @@ private extension Color {
 
 // MARK: - 모드 이름 변경 팝업 (노래방 "노래찾기" 룩)
 
-/// 선택된 모드를 다시 탭하면 뜨는 작은 창. 모드 이름만 바꿔 SessionPreset에 저장한다.
+/// 선택된 곡을 다시 탭하면 뜨는 작은 창. 곡 제목(풀네임)과 별칭(번호 룩)을 함께 정한다.
 /// 옛날 노래방 노래찾기 화면을 본떠 파란 타이틀바·돋보기 원형 아이콘·CRT 다크 입력창·
-/// 추천 이름 곡목록·하단 액션바로 구성한다.
+/// 추천 곡목록·하단 액션바로 구성한다.
 private struct ModeNameEditor: View {
     @Environment(\.modelContext) private var modelContext
     let preset: SessionPreset
     let onSave: () -> Void
     let onClose: () -> Void
 
-    @State private var name: String = ""
-    @FocusState private var focused: Bool
+    private enum Field { case title, alias }
 
-    /// 버튼에 한 줄로 들어가도록 모드 이름 최대 글자수.
-    private let maxNameLength = 6
+    /// 곡 제목(풀네임) + 별칭(번호 룩).
+    @State private var songTitle: String = ""
+    @State private var alias: String = ""
+    @FocusState private var focusedField: Field?
 
-    /// 노래찾기 곡목록처럼 보이는 추천 이름 + 가짜 곡번호.
-    private let suggestions: [(code: String, name: String)] = [
-        ("24433", "집중"),
-        ("91405", "공부"),
-        ("53997", "마감"),
-        ("24434", "운동"),
-        ("91880", "취침")
+    /// 곡 제목 최대 글자수. 확인화면·위젯에 들어가는 한도 안에서 가능한 길게.
+    private let maxTitleLength = 24
+    /// 별칭 최대 글자수 — 버튼에 곡번호처럼 작게 들어가야 하므로 짧게.
+    private let maxAliasLength = 5
+
+    /// 노래찾기 곡목록처럼 보이는 추천 곡 제목 + 가짜 곡번호.
+    /// TV 안 패널은 키보드 위 공간이 좁아 3줄만 둔다(분위기용 장식).
+    private let suggestions: [(code: String, title: String)] = [
+        ("24433", "그대 없는 1시간"),
+        ("91405", "공부의 신"),
+        ("53997", "마감 직전")
     ]
 
-    private var trimmed: String { name.trimmingCharacters(in: .whitespaces) }
-    private var isValid: Bool { !trimmed.isEmpty }
+    private var trimmedTitle: String { songTitle.trimmingCharacters(in: .whitespaces) }
+    private var trimmedAlias: String { alias.trimmingCharacters(in: .whitespaces) }
+    /// 별칭·곡 제목 중 하나만 있어도 저장 가능(둘 다 비면 막는다).
+    private var isValid: Bool { !trimmedAlias.isEmpty || !trimmedTitle.isEmpty }
+    /// 곡 제목이 한도까지 찼는지 — 입력이 막혔음을 알리는 데 쓴다.
+    private var titleAtLimit: Bool { songTitle.count >= maxTitleLength }
 
-    /// 입력 글자로 추천 이름을 고른다.
-    /// 앞글자 일부("마"→마감)나 초성("ㅁㄱ"→마감)이 들어맞으면 선택된 것으로 본다.
+    /// 입력 글자로 추천 곡을 고른다.
+    /// 앞글자 일부("마"→마감 직전)나 초성("ㅁㄱ")이 들어맞으면 선택된 것으로 본다.
     private func matches(_ candidate: String) -> Bool {
-        let q = trimmed
+        let q = trimmedTitle
         guard !q.isEmpty else { return false }
         if candidate.hasPrefix(q) { return true }
-        return Self.chosung(of: candidate).hasPrefix(q)
+        return Self.chosung(of: candidate).hasPrefix(Self.chosung(of: q))
     }
 
     /// 한글 음절을 초성 문자열로 바꾼다. "마감" → "ㅁㄱ". 한글이 아니면 그대로 둔다.
@@ -1143,33 +1279,30 @@ private struct ModeNameEditor: View {
     }
 
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.55)
-                .ignoresSafeArea()
-                .onTapGesture { onClose() }
-
-            VStack(spacing: 0) {
-                titleBar
-                bodyArea
-                bottomBar
-            }
-            .frame(maxWidth: 360)
-            .background(
-                RoundedRectangle(cornerRadius: 14).fill(
-                    LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
-                                   startPoint: .top, endPoint: .bottom)
-                )
-            )
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: 0x2d4f86), lineWidth: 1.5))
-            .clipShape(RoundedRectangle(cornerRadius: 14))
-            .shadow(color: .black.opacity(0.5), radius: 24, y: 10)
-            .padding(.horizontal, 26)
+        // 어두운 스크림·플로팅 카드 없이, TV 화면 위에 떠오른 노래찾기 디지털 패널.
+        // 리모컨이 내려가며 생긴 공간 위쪽에 자리잡고, 아래는 CRT 배경을 그대로 둔다.
+        VStack(spacing: 0) {
+            titleBar
+            bodyArea
+            bottomBar
         }
+        .frame(maxWidth: .infinity, alignment: .top)
+        .background(
+            RoundedRectangle(cornerRadius: 14).fill(
+                LinearGradient(colors: [Color(hex: 0x12203a), Color(hex: 0x0a1326)],
+                               startPoint: .top, endPoint: .bottom)
+            )
+        )
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color(hex: 0x2d4f86), lineWidth: 1.5))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        // 떠 있는 카드가 아니라 화면 속에서 빛나는 패널처럼 보이도록 청록 글로우만 옅게.
+        .shadow(color: KColor.cyan.opacity(0.18), radius: 14)
         .onAppear {
-            name = preset.name
+            songTitle = preset.songTitle
+            alias = preset.name
             // 팝업 등장과 키보드를 한 모션으로 묶기 위해 지연 없이 다음 런루프에서 바로 포커스.
-            // (0.35초 지연을 두면 팝업이 먼저 뜬 뒤 키보드가 따로 올라와 2단계로 버벅여 보인다.)
-            DispatchQueue.main.async { focused = true }
+            // 별칭이 위라 별칭부터 잡는다.
+            DispatchQueue.main.async { focusedField = .alias }
         }
     }
 
@@ -1178,7 +1311,7 @@ private struct ModeNameEditor: View {
     private var titleBar: some View {
         HStack(spacing: 10) {
             searchCircle
-            OutlinedText(text: "모드 이름 변경", size: 19,
+            OutlinedText(text: "곡 정보", size: 19,
                          fill: Color(hex: 0xeaff6a), stroke: KColor.outline, strokeWidth: 3.5)
             Spacer(minLength: 6)
             hangulChip
@@ -1224,11 +1357,22 @@ private struct ModeNameEditor: View {
         }
     }
 
-    // MARK: 본문 (입력창 + 추천 이름 목록)
+    // MARK: 본문 (곡 제목 입력 + 별칭 입력 + 추천 곡목록)
 
     private var bodyArea: some View {
-        VStack(spacing: 12) {
-            inputField
+        VStack(spacing: 8) {
+            // 별칭(작은 곳에 뜨는 번호)을 위로, 곡 제목을 아래로.
+            aliasField
+            titleField
+
+            // 곡 제목이 한도까지 찼을 때만 막혔음을 알린다.
+            if titleAtLimit {
+                Text("곡 제목은 최대 \(maxTitleLength)자까지 쓸 수 있어요")
+                    .font(.myungjoLight(12))
+                    .foregroundStyle(KColor.pink)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .transition(.opacity)
+            }
 
             VStack(spacing: 0) {
                 ForEach(Array(suggestions.enumerated()), id: \.offset) { _, item in
@@ -1238,12 +1382,15 @@ private struct ModeNameEditor: View {
             .background(Color.black.opacity(0.18))
             .clipShape(RoundedRectangle(cornerRadius: 8))
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(.white.opacity(0.08), lineWidth: 1))
+            .padding(.top, 4)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 14)
+        .animation(.easeOut(duration: 0.2), value: titleAtLimit)
     }
 
-    private var inputField: some View {
+    /// 곡 제목(풀네임) — 노래찾기 화면처럼 큰 명조 + 밑줄 커서.
+    private var titleField: some View {
         HStack(spacing: 8) {
             Text("가")
                 .font(.system(size: 13, weight: .heavy))
@@ -1253,75 +1400,147 @@ private struct ModeNameEditor: View {
                 .background(RoundedRectangle(cornerRadius: 4).fill(KColor.pink))
 
             ZStack(alignment: .leading) {
-                // 보이는 텍스트 + 밑줄(_) 커서. 노래찾기 화면처럼 "송가인_" 느낌.
                 Group {
-                    if name.isEmpty && !focused {
-                        Text("모드 이름 입력")
+                    if songTitle.isEmpty && focusedField != .title {
+                        Text("곡 제목 입력")
                             .font(.myungjoLight(20))
                             .foregroundStyle(.white.opacity(0.35))
                     } else {
                         HStack(spacing: 1) {
-                            Text(name)
+                            Text(songTitle)
                                 .font(.myungjo(24))
                                 .foregroundStyle(.white)
-                            if focused { blinkingCaret }
+                            if focusedField == .title { blinkingCaret(size: 24) }
                         }
                     }
                 }
                 .allowsHitTesting(false)
 
-                // 입력 캡처용 투명 필드 — 글자/기본 커서는 숨기고 위 표시만 보이게 한다.
-                TextField("", text: $name)
+                TextField("", text: $songTitle)
                     .font(.myungjo(24))
                     .foregroundStyle(.clear)
                     .tint(.clear)
-                    .focused($focused)
+                    .focused($focusedField, equals: .title)
                     .submitLabel(.done)
                     .onSubmit { if isValid { save() } }
-                    .onChange(of: name) { _, newValue in
-                        if newValue.count > maxNameLength {
-                            name = String(newValue.prefix(maxNameLength))
+                    .onChange(of: songTitle) { _, newValue in
+                        if newValue.count > maxTitleLength {
+                            songTitle = String(newValue.prefix(maxTitleLength))
                         }
                     }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            if !songTitle.isEmpty {
+                Button { songTitle = "" } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.white.opacity(0.45))
+                        .font(.system(size: 17))
+                }
+                .buttonStyle(.plain)
+            }
+            counter(songTitle.count, max: maxTitleLength)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 8).fill(
-                RadialGradient(colors: [Color(hex: 0x0d1322), Color(hex: 0x05080f)],
-                               center: .center, startRadius: 1, endRadius: 220)
-            )
+        .background(fieldBackground)
+        .overlay(RoundedRectangle(cornerRadius: 8)
+            .stroke((titleAtLimit ? KColor.pink : KColor.cyan).opacity(focusedField == .title ? 0.85 : 0.4), lineWidth: 1.5))
+    }
+
+    /// 별칭(번호 룩) — 버튼에 곡번호처럼 들어가는 짧은 식별자. 모노스페이스 청록.
+    private var aliasField: some View {
+        HStack(spacing: 8) {
+            Text("별칭")
+                .font(.system(size: 12, weight: .heavy))
+                .foregroundStyle(KColor.yellow)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(RoundedRectangle(cornerRadius: 4).fill(.black.opacity(0.35)))
+
+            ZStack(alignment: .leading) {
+                Group {
+                    if alias.isEmpty && focusedField != .alias {
+                        Text("곡 미정")
+                            .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(.white.opacity(0.3))
+                    } else {
+                        HStack(spacing: 1) {
+                            Text(alias)
+                                .font(.system(size: 17, weight: .heavy, design: .monospaced))
+                                .foregroundStyle(KColor.cyan)
+                            if focusedField == .alias { blinkingCaret(size: 17) }
+                        }
+                    }
+                }
+                .allowsHitTesting(false)
+
+                TextField("", text: $alias)
+                    .font(.system(size: 17, weight: .heavy, design: .monospaced))
+                    .foregroundStyle(.clear)
+                    .tint(.clear)
+                    .focused($focusedField, equals: .alias)
+                    .submitLabel(.next)
+                    .onSubmit { focusedField = .title }
+                    .onChange(of: alias) { _, newValue in
+                        if newValue.count > maxAliasLength {
+                            alias = String(newValue.prefix(maxAliasLength))
+                        }
+                    }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            counter(alias.count, max: maxAliasLength)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
+        .background(fieldBackground)
+        .overlay(RoundedRectangle(cornerRadius: 8)
+            .stroke(KColor.cyan.opacity(focusedField == .alias ? 0.8 : 0.4), lineWidth: 1.5))
+    }
+
+    private var fieldBackground: some View {
+        RoundedRectangle(cornerRadius: 8).fill(
+            RadialGradient(colors: [Color(hex: 0x0d1322), Color(hex: 0x05080f)],
+                           center: .center, startRadius: 1, endRadius: 220)
         )
-        .overlay(RoundedRectangle(cornerRadius: 8).stroke(KColor.cyan.opacity(0.55), lineWidth: 1.5))
     }
 
     /// 0.5초 주기로 깜빡이는 밑줄 커서.
-    private var blinkingCaret: some View {
+    private func blinkingCaret(size: CGFloat) -> some View {
         TimelineView(.periodic(from: .now, by: 0.5)) { ctx in
             let on = Int(ctx.date.timeIntervalSinceReferenceDate / 0.5) % 2 == 0
             Text("_")
-                .font(.myungjo(24))
+                .font(.myungjo(size))
                 .foregroundStyle(KColor.cyan)
                 .opacity(on ? 1 : 0)
         }
     }
 
-    private func suggestionRow(_ item: (code: String, name: String)) -> some View {
-        let selected = matches(item.name)
+    /// 입력칸 우측 글자수 카운터 — 한도에 닿으면 분홍으로 바꿔 "막혔다"를 알린다.
+    private func counter(_ count: Int, max: Int) -> some View {
+        Text("\(count)/\(max)")
+            .font(.system(size: 11, weight: .bold, design: .monospaced))
+            .foregroundStyle(count >= max ? KColor.pink : .white.opacity(0.4))
+    }
+
+    /// 추천 곡 한 줄 — 탭하면 곡 제목을 채운다. (별칭은 그대로 둠)
+    private func suggestionRow(_ item: (code: String, title: String)) -> some View {
+        let selected = matches(item.title)
         return Button {
-            name = item.name
+            songTitle = String(item.title.prefix(maxTitleLength))
         } label: {
             HStack(spacing: 10) {
                 Text(item.code)
                     .font(.led(13))
                     .foregroundStyle(selected ? Color(hex: 0x0c3a6b) : KColor.cyan)
                     .frame(width: 54, alignment: .leading)
-                Text(item.name)
+                Text(item.title)
                     .font(.myungjo(16))
                     .foregroundStyle(selected ? Color(hex: 0x06223f) : .white)
+                    .lineLimit(1)
                 Spacer()
-                Text("모드")
+                Text("곡")
                     .font(.myungjoLight(13))
                     .foregroundStyle(selected ? Color(hex: 0x06223f) : KColor.yellow.opacity(0.9))
             }
@@ -1337,9 +1556,12 @@ private struct ModeNameEditor: View {
 
     private var bottomBar: some View {
         HStack(spacing: 10) {
-            Text("\(name.count)/\(maxNameLength)")
-                .font(.led(13))
-                .foregroundStyle(KColor.cyan)
+            // 글자수는 각 입력칸 우측 카운터가 보여주므로, 여기선 비었을 때만 안내한다.
+            if !isValid {
+                Text("별칭이나 곡 제목 중 하나는 채워주세요")
+                    .font(.myungjoLight(12))
+                    .foregroundStyle(KColor.pink)
+            }
             Spacer()
             actionButton("취소", color: Color(hex: 0x4a5568)) { onClose() }
             actionButton("완료", color: KColor.green, enabled: isValid) { if isValid { save() } }
@@ -1371,7 +1593,8 @@ private struct ModeNameEditor: View {
 
     private func save() {
         guard isValid else { return }
-        preset.name = String(trimmed.prefix(maxNameLength))
+        preset.name = String(trimmedAlias.prefix(maxAliasLength))
+        preset.songTitle = String(trimmedTitle.prefix(maxTitleLength))
         try? modelContext.save()
         onSave()
         onClose()
