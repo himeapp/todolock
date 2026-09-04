@@ -662,7 +662,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldConfiguration;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -679,7 +678,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ActivityMonitor;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -718,7 +716,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = U42553WVJN;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -764,7 +762,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ActivityMonitor;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -780,7 +777,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldAction;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -796,7 +792,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldConfiguration;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -814,7 +809,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.TodoLockWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -832,7 +826,6 @@
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.TodoLockWidgets;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -851,7 +844,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -867,7 +859,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock.ShieldAction;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -886,7 +877,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = hime.app.todolock;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -925,7 +915,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = U42553WVJN;
 				ENABLE_NS_ASSERTIONS = NO;
