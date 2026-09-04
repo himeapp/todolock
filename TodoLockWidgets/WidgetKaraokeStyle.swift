@@ -32,7 +32,10 @@ struct WKLyricLine: View {
     var body: some View {
         ZStack {
             // 테두리(여러 방향 스트로크 모사)
-            ForEach(WKLyricLine.offsets, id: \.self) { o in
+            // 인덱스로 순회한다. CGPoint의 Hashable 적합성은 iOS 18부터라
+            // id: \.self 를 쓰면 배포 타깃(iOS 17)에서 문제가 된다.
+            ForEach(WKLyricLine.offsets.indices, id: \.self) { i in
+                let o = WKLyricLine.offsets[i]
                 base.foregroundStyle(WKColor.outline).offset(x: o.x, y: o.y)
             }
             // 채움: 흰 글자 위에 파란색이 왼→오로 차오름
